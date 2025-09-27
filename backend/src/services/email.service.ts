@@ -59,7 +59,7 @@ export class EmailService {
    * Send alert notification email
    */
   async sendAlertNotification(notification: EmailNotification): Promise<void> {
-    const subject = `${notification.severity.toUpperCase()} ALERT: ${notification.title}`;
+    const subject = notification.subject || notification.emailSubject || `${notification.severity.toUpperCase()} ALERT: ${notification.title}`;
     const html = this.generateAlertNotificationHtml(notification);
     const text = this.generateAlertNotificationText(notification);
 
@@ -268,10 +268,10 @@ JamAlert - Keeping Jamaica Safe, One Alert at a Time
         <div class="emergency-contacts">
           <h3>🚨 Emergency Contacts:</h3>
           <ul>
-            <li>Police: <strong>119</strong></li>
-            <li>Fire: <strong>110</strong></li>
-            <li>Emergency Services: <strong>911</strong></li>
-            <li>ODPEM: <strong>116</strong></li>
+            <li>Police: <strong>${notification.emergencyContacts?.police || '119'}</strong></li>
+            <li>Fire: <strong>${notification.emergencyContacts?.fire || '110'}</strong></li>
+            <li>Emergency Services: <strong>${notification.emergencyContacts?.emergency || '911'}</strong></li>
+            <li>ODPEM: <strong>${notification.emergencyContacts?.odpem || '116'}</strong></li>
           </ul>
         </div>
         
@@ -300,10 +300,10 @@ ${notification.message}
 Affected Areas: ${notification.parishes.map(p => this.formatParishName(p)).join(', ')}
 
 Emergency Contacts:
-- Police: 119
-- Fire: 110
-- Emergency Services: 911
-- ODPEM: 116
+- Police: ${notification.emergencyContacts?.police || '119'}
+- Fire: ${notification.emergencyContacts?.fire || '110'}
+- Emergency Services: ${notification.emergencyContacts?.emergency || '911'}
+- ODPEM: ${notification.emergencyContacts?.odpem || '116'}
 
 Stay safe and follow official guidance.
 

@@ -20,3 +20,46 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 })
+
+// Mock IntersectionObserver
+global.IntersectionObserver = jest.fn().mockImplementation((callback) => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+  root: null,
+  rootMargin: '',
+  thresholds: [],
+}))
+
+// Mock ResizeObserver
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}))
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+}
+global.localStorage = localStorageMock
+
+// Mock sessionStorage
+global.sessionStorage = localStorageMock
+
+// Mock URL.createObjectURL
+global.URL.createObjectURL = jest.fn(() => 'mocked-url')
+global.URL.revokeObjectURL = jest.fn()
+
+// Mock HTMLCanvasElement.getContext
+HTMLCanvasElement.prototype.getContext = jest.fn()
+
+// Mock geolocation
+global.navigator.geolocation = {
+  getCurrentPosition: jest.fn(),
+  watchPosition: jest.fn(),
+  clearWatch: jest.fn(),
+}

@@ -2,6 +2,8 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { AlertService } from '../services/alert.service';
 import { authenticateAdmin } from '../middleware/auth.middleware';
 import { ValidationService } from '../services/validation.service';
+import { telemetryService } from '../lib/telemetry';
+import { monitoringService } from '../services/monitoring.service';
 import { 
   AlertDispatchRequest, 
   ApiResponse, 
@@ -15,12 +17,18 @@ import {
  * POST /api/alerts/send
  */
 export async function alertsSend(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  const startTime = Date.now();
   context.log('Alert dispatch function triggered');
 
   try {
+    // Track API call start
+    telemetryService.logEvent('api.call.started', { endpoint: '/api/alerts/send', method: 'POST' }, undefined, context);
+
     // Authenticate admin user
     const admin = await authenticateAdmin(request);
     if (!admin) {
+      const duration = Date.now() - startTime;
+      telemetryService.trackApiCall('/api/alerts/send', 'POST', 401, duration, context);
       return {
         status: 401,
         jsonBody: {
@@ -32,6 +40,8 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
 
     // Validate request method
     if (request.method !== 'POST') {
+      const duration = Date.now() - startTime;
+      telemetryService.trackApiCall('/api/alerts/send', request.method, 405, duration, context);
       return {
         status: 405,
         jsonBody: {
@@ -47,6 +57,9 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
       const body = await request.text();
       requestData = JSON.parse(body);
     } catch (error) {
+      const duration = Date.now() - startTime;
+      telemetryService.trackApiCall('/api/alerts/send', 'POST', 400, duration, context);
+      telemetryService.trackError('json_parse', 'alerts-send', false, context);
       return {
         status: 400,
         jsonBody: {
@@ -59,6 +72,9 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
     // Validate alert dispatch request
     const validation = validateAlertDispatchRequest(requestData);
     if (!validation.isValid) {
+      const duration = Date.now() - startTime;
+      telemetryService.trackApiCall('/api/alerts/send', 'POST', 400, duration, context);
+      telemetryService.trackError('validation', 'alerts-send', false, context);
       return {
         status: 400,
         jsonBody: {
@@ -76,9 +92,43 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
       // Dispatch the alert
       context.log(`Dispatching alert to parishes: ${requestData.parishes.join(', ')}`);
       
+      const alertStartTime = Date.now();
       const result = await alertService.dispatchAlert(requestData, admin.id);
+      const alertDeliveryTime = Date.now() - alertStartTime;
+
+      // Track alert delivery performance
+      telemetryService.trackAlertDelivery(
+        result.alert.id,
+        result.dispatchResult.totalRecipients,
+        alertDeliveryTime,
+        context
+      );
+
+      // Log performance metrics
+      await monitoringService.logMetric('alert.dispatch.time', alertDeliveryTime, context);
+      await monitoringService.logMetric('alert.dispatch.recipients', result.dispatchResult.totalRecipients, context);
+      await monitoringService.logMetric('alert.dispatch.success_rate', 
+        (result.dispatchResult.successCount / result.dispatchResult.totalRecipients) * 100, context);
+
+      // Track alert event
+      telemetryService.logEvent('alert.dispatched', {
+        alertId: result.alert.id,
+        type: result.alert.type,
+        severity: result.alert.severity,
+        parishes: result.alert.parishes.join(','),
+        adminId: admin.id
+      }, {
+        recipients: result.dispatchResult.totalRecipients,
+        successCount: result.dispatchResult.successCount,
+        failureCount: result.dispatchResult.failureCount,
+        deliveryTime: alertDeliveryTime
+      }, context);
 
       context.log(`Alert dispatched successfully. Alert ID: ${result.alert.id}, Recipients: ${result.dispatchResult.totalRecipients}, Success: ${result.dispatchResult.successCount}, Failed: ${result.dispatchResult.failureCount}`);
+
+      // Track successful API call
+      const duration = Date.now() - startTime;
+      telemetryService.trackApiCall('/api/alerts/send', 'POST', 200, duration, context);
 
       // Return success response with dispatch results
       return {
@@ -111,12 +161,17 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
     } catch (error) {
       context.log.error('Alert dispatch failed:', error);
       
+      const duration = Date.now() - startTime;
+      telemetryService.trackApiCall('/api/alerts/send', 'POST', 500, duration, context);
+      telemetryService.trackError('alert_dispatch', 'alerts-send', true, context);
+      telemetryService.logException(error as Error, { adminId: admin.id }, context);
+      
       return {
         status: 500,
         jsonBody: {
           success: false,
           error: 'Failed to dispatch alert',
-          details: error.message
+          details: error instanceof Error ? error.message : 'Unknown error'
         } as ApiResponse
       };
     } finally {
@@ -125,6 +180,11 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
 
   } catch (error) {
     context.log.error('Alert dispatch function error:', error);
+    
+    const duration = Date.now() - startTime;
+    telemetryService.trackApiCall('/api/alerts/send', 'POST', 500, duration, context);
+    telemetryService.trackError('function_error', 'alerts-send', true, context);
+    telemetryService.logException(error as Error, undefined, context);
     
     return {
       status: 500,

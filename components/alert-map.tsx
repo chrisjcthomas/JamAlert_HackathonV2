@@ -7,6 +7,7 @@ import { Button } from "./ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Badge } from "./ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
+import { LazyLoader } from "./ui/lazy-loader"
 import { fetchMapData, MapIncident, IncidentType, Severity } from "../lib/api/incidents"
 import { Parish } from "../lib/types"
 
@@ -333,25 +334,39 @@ export function AlertMap({
       )}
 
       {/* Map Container */}
-      <div className="rounded-lg overflow-hidden border border-border bg-background relative" style={{ height }}>
-        {error ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+      <LazyLoader
+        className="rounded-lg overflow-hidden border border-border bg-background relative"
+        threshold={0.1}
+        rootMargin="100px"
+        fallback={
+          <div className="flex items-center justify-center bg-muted/10" style={{ height }}>
             <div className="text-center">
-              <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground mb-4">{error}</p>
-              <Button onClick={handleRefresh} size="sm">
-                Try Again
-              </Button>
+              <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Loading map...</p>
             </div>
           </div>
-        ) : (
-          <DynamicMap 
-            incidents={filteredIncidents}
-            loading={loading}
-            height={height}
-          />
-        )}
-      </div>
+        }
+      >
+        <div style={{ height }}>
+          {error ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+              <div className="text-center">
+                <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground mb-4">{error}</p>
+                <Button onClick={handleRefresh} size="sm">
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <DynamicMap
+              incidents={filteredIncidents}
+              loading={loading}
+              height={height}
+            />
+          )}
+        </div>
+      </LazyLoader>
     </div>
   )
 }

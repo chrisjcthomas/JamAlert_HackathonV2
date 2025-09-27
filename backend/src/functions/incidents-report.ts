@@ -2,51 +2,56 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { IncidentService } from '../services/incident.service';
 import { IncidentReportRequest, ApiResponse } from '../types';
 import { ValidationService } from '../services/validation.service';
+import { SecurityMiddleware, RATE_LIMIT_CONFIGS } from '../middleware/security.middleware';
+import { SecurityService } from '../services/security.service';
 
 const incidentService = new IncidentService();
 const validationService = new ValidationService();
 
 export async function incidentsReport(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('Processing incident report request');
+  
+  const securityMiddleware = new SecurityMiddleware();
+  const securityService = new SecurityService();
 
   try {
+    // Apply security middleware with rate limiting for incident reports
+    const securityResult = await securityMiddleware.apply(request, context, {
+      rateLimit: RATE_LIMIT_CONFIGS.INCIDENT_REPORT,
+      requireHttps: true,
+      validateInput: true,
+      auditLog: true
+    });
+
+    if (securityResult) {
+      return securityResult;
+    }
+
     // Only allow POST requests
     if (request.method !== 'POST') {
-      return {
+      return SecurityMiddleware.addSecurityHeaders({
         status: 405,
         jsonBody: {
           success: false,
           error: 'Method not allowed'
         }
-      };
+      });
     }
+
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const userAgent = request.headers.get('user-agent');
 
     // Get request body
     const body = await request.json() as IncidentReportRequest;
     
     if (!body) {
-      return {
+      return SecurityMiddleware.addSecurityHeaders({
         status: 400,
         jsonBody: {
           success: false,
           error: 'Request body is required'
         }
-      };
-    }
-
-    // Rate limiting check (basic implementation)
-    const clientIp = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown';
-    
-    if (!validationService.validateRateLimit(`incident_${clientIp}`, 15 * 60 * 1000, 5)) {
-      return {
-        status: 429,
-        jsonBody: {
-          success: false,
-          error: 'Too many requests. Please try again later.'
-        }
-      };
+      });
     }
 
     // Sanitize input data
@@ -75,59 +80,81 @@ export async function incidentsReport(request: HttpRequest, context: InvocationC
     maxPastDate.setDate(maxPastDate.getDate() - 30); // Max 30 days in the past
 
     if (sanitizedData.incidentDate > now) {
-      return {
+      await securityService.logSecurityEvent(
+        'INVALID_INCIDENT_DATE_FUTURE',
+        'incident_report',
+        clientIp,
+        false,
+        undefined,
+        userAgent,
+        { incidentDate: sanitizedData.incidentDate },
+        context
+      );
+
+      return SecurityMiddleware.addSecurityHeaders({
         status: 400,
         jsonBody: {
           success: false,
           error: 'Incident date cannot be in the future'
         }
-      };
+      });
     }
 
     if (sanitizedData.incidentDate < maxPastDate) {
-      return {
+      await securityService.logSecurityEvent(
+        'INVALID_INCIDENT_DATE_TOO_OLD',
+        'incident_report',
+        clientIp,
+        false,
+        undefined,
+        userAgent,
+        { incidentDate: sanitizedData.incidentDate },
+        context
+      );
+
+      return SecurityMiddleware.addSecurityHeaders({
         status: 400,
         jsonBody: {
           success: false,
           error: 'Incident date cannot be more than 30 days in the past'
         }
-      };
+      });
     }
 
     // Validate incident time format if provided
     if (sanitizedData.incidentTime) {
       const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(sanitizedData.incidentTime)) {
-        return {
+        return SecurityMiddleware.addSecurityHeaders({
           status: 400,
           jsonBody: {
             success: false,
             error: 'Invalid time format. Use HH:MM format (24-hour)'
           }
-        };
+        });
       }
     }
 
     // Validate reporter contact info for non-anonymous reports
     if (!sanitizedData.isAnonymous && sanitizedData.receiveUpdates) {
       if (!sanitizedData.reporterName || sanitizedData.reporterName.trim().length < 2) {
-        return {
+        return SecurityMiddleware.addSecurityHeaders({
           status: 400,
           jsonBody: {
             success: false,
             error: 'Reporter name is required for non-anonymous reports with updates'
           }
-        };
+        });
       }
 
       if (sanitizedData.reporterPhone && !validationService.sanitizePhoneNumber(sanitizedData.reporterPhone)) {
-        return {
+        return SecurityMiddleware.addSecurityHeaders({
           status: 400,
           jsonBody: {
             success: false,
             error: 'Invalid phone number format'
           }
-        };
+        });
       }
     }
 
@@ -136,13 +163,42 @@ export async function incidentsReport(request: HttpRequest, context: InvocationC
 
     if (!result.success) {
       context.log.error('Failed to create incident report:', result.error);
-      return {
+      
+      await securityService.logSecurityEvent(
+        'INCIDENT_REPORT_CREATION_FAILED',
+        'incident_report',
+        clientIp,
+        false,
+        undefined,
+        userAgent,
+        { error: result.error, parish: sanitizedData.parish },
+        context
+      );
+
+      return SecurityMiddleware.addSecurityHeaders({
         status: 400,
         jsonBody: result
-      };
+      });
     }
 
     // Log successful creation (without sensitive data)
+    await securityService.logSecurityEvent(
+      'INCIDENT_REPORT_CREATED',
+      'incident_report',
+      clientIp,
+      true,
+      undefined,
+      userAgent,
+      {
+        reportId: result.data?.id,
+        parish: sanitizedData.parish,
+        incidentType: sanitizedData.incidentType,
+        severity: sanitizedData.severity,
+        isAnonymous: sanitizedData.isAnonymous
+      },
+      context
+    );
+
     context.log.info('Incident report created successfully', {
       reportId: result.data?.id,
       parish: sanitizedData.parish,
@@ -161,25 +217,39 @@ export async function incidentsReport(request: HttpRequest, context: InvocationC
       createdAt: result.data?.createdAt
     };
 
-    return {
+    return SecurityMiddleware.addSecurityHeaders({
       status: 201,
       jsonBody: {
         success: true,
         data: responseData,
         message: 'Incident report submitted successfully. It will be reviewed by our team.'
       }
-    };
+    });
 
   } catch (error) {
     context.log.error('Error processing incident report:', error);
     
-    return {
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const userAgent = request.headers.get('user-agent');
+
+    await securityService.logSecurityEvent(
+      'INCIDENT_REPORT_ERROR',
+      'incident_report',
+      clientIp,
+      false,
+      undefined,
+      userAgent,
+      { error: error.message },
+      context
+    );
+    
+    return SecurityMiddleware.addSecurityHeaders({
       status: 500,
       jsonBody: {
         success: false,
         error: 'Internal server error'
       }
-    };
+    });
   }
 }
 

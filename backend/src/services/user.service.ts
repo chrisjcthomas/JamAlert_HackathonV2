@@ -2,6 +2,7 @@ import { User, Parish } from '@prisma/client';
 import { getPrismaClient, withRetry, DatabaseError } from '../lib/database';
 import { UserRegistrationRequest, CreateUserData, UpdateUserData } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { SecurityService } from './security.service';
 
 // Create service instance
 const userService = new UserService();
@@ -21,10 +22,12 @@ export const validateUser = (id: string) => userService.validateUser(id);
 export const getUserAlertHistory = (userId: string, params: any) => userService.getUserAlertHistory(userId, params);
 export const submitAlertFeedback = (userId: string, alertId: string, feedback: any) => userService.submitAlertFeedback(userId, alertId, feedback);
 export const getUserAlertFeedback = (userId: string, alertId: string) => userService.getUserAlertFeedback(userId, alertId);
+export const getUsersWhoReceivedAlert = (alertId: string) => userService.getUsersWhoReceivedAlert(alertId);
 export const deactivateUser = (userId: string, reason?: string, feedback?: string) => userService.deactivateUser(userId, reason, feedback);
 
 export class UserService {
   private prisma = getPrismaClient();
+  private securityService = new SecurityService();
 
   /**
    * Create a new user
@@ -37,9 +40,9 @@ export class UserService {
           firstName: userData.firstName,
           lastName: userData.lastName,
           email: userData.email.toLowerCase().trim(),
-          phone: userData.phone?.trim() || null,
+          phone: userData.phone ? this.securityService.encrypt(userData.phone.trim()) : null,
           parish: userData.parish,
-          address: userData.address?.trim() || null,
+          address: userData.address ? this.securityService.encrypt(userData.address.trim()) : null,
           smsAlerts: userData.smsAlerts,
           emailAlerts: userData.emailAlerts,
           emergencyOnly: userData.emergencyOnly,
@@ -56,11 +59,18 @@ export class UserService {
    */
   async findByEmail(email: string): Promise<User | null> {
     return withRetry(async () => {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: {
           email: email.toLowerCase().trim(),
         },
       });
+      if (user && user.phone) {
+        user.phone = this.securityService.decrypt(user.phone);
+      }
+      if (user && user.address) {
+        user.address = this.securityService.decrypt(user.address);
+      }
+      return user;
     }, 'Find user by email');
   }
 
@@ -69,9 +79,16 @@ export class UserService {
    */
   async findById(id: string): Promise<User | null> {
     return withRetry(async () => {
-      return await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id },
       });
+      if (user && user.phone) {
+        user.phone = this.securityService.decrypt(user.phone);
+      }
+      if (user && user.address) {
+        user.address = this.securityService.decrypt(user.address);
+      }
+      return user;
     }, 'Find user by ID');
   }
 
@@ -510,6 +527,28 @@ export class UserService {
         },
       });
     }, 'Get user alert feedback');
+  }
+
+  /**
+   * Get users who received a specific alert
+   */
+  async getUsersWhoReceivedAlert(alertId: string): Promise<User[]> {
+    return withRetry(async () => {
+      const deliveryLogs = await this.prisma.alertDeliveryLog.findMany({
+        where: { 
+          alertId,
+          status: {
+            in: ['SENT', 'DELIVERED']
+          }
+        },
+        include: {
+          user: true
+        },
+        distinct: ['userId']
+      });
+
+      return deliveryLogs.map(log => log.user);
+    }, 'Get users who received alert');
   }
 
   /**

@@ -4,6 +4,8 @@ import { UserRegistrationRequest, ApiResponse, Parish } from '../types';
 import { UserService } from '../services/user.service';
 import { EmailService } from '../services/email.service';
 import { ValidationService } from '../services/validation.service';
+import { SecurityMiddleware, RATE_LIMIT_CONFIGS } from '../middleware/security.middleware';
+import { SecurityService } from '../services/security.service';
 
 // Input validation schema
 const registrationSchema = z.object({
@@ -32,8 +34,25 @@ const registrationSchema = z.object({
  */
 export async function registerUser(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('User registration request received');
+  
+  const securityMiddleware = new SecurityMiddleware();
+  const securityService = new SecurityService();
 
   try {
+    // Apply security middleware with strict rate limiting for registration
+    const securityResult = await securityMiddleware.apply(request, context, {
+      rateLimit: RATE_LIMIT_CONFIGS.REGISTRATION,
+      requireHttps: true,
+      validateInput: true,
+      auditLog: true
+    });
+
+    if (securityResult) {
+      return securityResult;
+    }
+
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const userAgent = request.headers.get('user-agent');
     // Parse and validate request body
     const body = await request.json() as UserRegistrationRequest;
     const validatedData = registrationSchema.parse(body);
@@ -46,14 +65,25 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
     // Check if user already exists
     const existingUser = await userService.findByEmail(validatedData.email);
     if (existingUser) {
+      await securityService.logSecurityEvent(
+        'DUPLICATE_REGISTRATION_ATTEMPT',
+        'user_registration',
+        clientIp,
+        false,
+        undefined,
+        userAgent,
+        { email: validatedData.email },
+        context
+      );
+
       const response: ApiResponse = {
         success: false,
         error: 'User with this email already exists',
       };
-      return {
+      return SecurityMiddleware.addSecurityHeaders({
         status: 400,
         jsonBody: response,
-      };
+      });
     }
 
     // Validate and sanitize phone number if provided
@@ -64,6 +94,18 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
     // Create user account
     const newUser = await userService.create(validatedData);
     context.log(`User created successfully: ${newUser.id}`);
+
+    // Log successful registration
+    await securityService.logSecurityEvent(
+      'USER_REGISTRATION_SUCCESS',
+      'user_registration',
+      clientIp,
+      true,
+      newUser.id,
+      userAgent,
+      { email: newUser.email, parish: newUser.parish },
+      context
+    );
 
     // Send confirmation email
     try {
@@ -85,13 +127,27 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
       message: 'Registration successful. Please check your email for confirmation.',
     };
 
-    return {
+    return SecurityMiddleware.addSecurityHeaders({
       status: 201,
       jsonBody: response,
-    };
+    });
 
   } catch (error) {
     context.log.error('Registration error:', error);
+
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const userAgent = request.headers.get('user-agent');
+
+    await securityService.logSecurityEvent(
+      'USER_REGISTRATION_FAILED',
+      'user_registration',
+      clientIp,
+      false,
+      undefined,
+      userAgent,
+      { error: error.message },
+      context
+    );
 
     if (error instanceof z.ZodError) {
       // Validation error
@@ -103,10 +159,10 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
           message: err.message,
         })),
       };
-      return {
+      return SecurityMiddleware.addSecurityHeaders({
         status: 400,
         jsonBody: response,
-      };
+      });
     }
 
     // Generic error response
@@ -115,10 +171,10 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
       error: 'Registration failed. Please try again.',
     };
 
-    return {
+    return SecurityMiddleware.addSecurityHeaders({
       status: 500,
       jsonBody: response,
-    };
+    });
   }
 }
 

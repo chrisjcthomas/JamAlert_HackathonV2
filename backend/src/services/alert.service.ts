@@ -538,6 +538,31 @@ export class AlertService {
   }
 
   /**
+   * Log admin action for audit purposes
+   */
+  async logAdminAction(
+    adminId: string,
+    action: string,
+    resource: string,
+    resourceId: string,
+    details?: Record<string, any>
+  ): Promise<void> {
+    await withRetry(async () => {
+      await this.prisma.auditLog.create({
+        data: {
+          id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          adminId: adminId,
+          action,
+          resource,
+          resourceId,
+          details: details ? JSON.stringify(details) : null,
+          timestamp: new Date()
+        }
+      });
+    }, 'Log admin action');
+  }
+
+  /**
    * Close alert service
    */
   async close(): Promise<void> {

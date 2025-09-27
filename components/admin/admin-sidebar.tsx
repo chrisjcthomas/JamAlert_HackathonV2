@@ -15,6 +15,7 @@ import {
   FileText,
   Menu,
   Shield,
+  Activity,
 } from "lucide-react"
 
 const navigation = [
@@ -37,6 +38,11 @@ const navigation = [
     name: "Alert Management",
     href: "/admin/alerts",
     icon: Bell,
+  },
+  {
+    name: "System Health",
+    href: "/admin/health",
+    icon: Activity,
   },
   {
     name: "Audit Logs",

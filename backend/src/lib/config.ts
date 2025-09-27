@@ -24,6 +24,13 @@ const configSchema = z.object({
   WEATHER_API_URL: z.string().url().default('https://api.openweathermap.org/data/2.5'),
   JAMAICA_MET_API_URL: z.string().url().optional(),
   
+  // SMS Configuration (Twilio)
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_NUMBER: z.string().optional(),
+  TWILIO_STATUS_CALLBACK: z.string().url().optional(),
+  SMS_ENABLED: z.string().transform(val => val === 'true').default('false'),
+  
   // Azure Services
   AZURE_NOTIFICATION_HUB_CONNECTION: z.string().optional(),
   AZURE_STORAGE_CONNECTION: z.string().optional(),
@@ -157,6 +164,20 @@ export function getRateLimitConfig() {
   return {
     windowMs: cfg.RATE_LIMIT_WINDOW_MS,
     maxRequests: cfg.RATE_LIMIT_MAX_REQUESTS,
+  };
+}
+
+/**
+ * SMS configuration
+ */
+export function getSMSConfig() {
+  const cfg = getConfig();
+  return {
+    enabled: cfg.SMS_ENABLED,
+    accountSid: cfg.TWILIO_ACCOUNT_SID,
+    authToken: cfg.TWILIO_AUTH_TOKEN,
+    fromNumber: cfg.TWILIO_FROM_NUMBER,
+    statusCallback: cfg.TWILIO_STATUS_CALLBACK,
   };
 }
 

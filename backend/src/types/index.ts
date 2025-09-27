@@ -123,6 +123,7 @@ export interface IncidentReportRequest {
   receiveUpdates: boolean;
   latitude?: number;
   longitude?: number;
+  photo?: string; // Base64 encoded image
 }
 
 // Map Data
@@ -213,17 +214,26 @@ export interface ThresholdCheck {
 }
 
 // Notification Types
+export type NotificationTone = 'calm' | 'urgent';
+
 export interface NotificationPayload {
   title: string;
   message: string;
+  smsMessage?: string;
+  pushTitle?: string;
+  pushMessage?: string;
+  emailSubject?: string;
   type: AlertType;
   severity: Severity;
   alertId: string;
   parishes: Parish[];
+  tone?: NotificationTone;
+  emergencyContacts?: EmergencyContacts;
 }
 
 export interface EmailNotification extends NotificationPayload {
   to: string;
+  subject?: string;
   from: {
     name: string;
     email: string;
@@ -241,6 +251,24 @@ export interface PushNotification extends NotificationPayload {
   badge?: number;
   sound?: string;
   data?: Record<string, any>;
+}
+
+export interface MessageTemplate {
+  title: string;
+  emailSubject: string;
+  emailTemplate: string;
+  smsTemplate: string;
+  pushTitle: string;
+  pushBody: string;
+  tone: NotificationTone;
+}
+
+export interface EmergencyContacts {
+  police: string;
+  fire: string;
+  emergency: string;
+  odpem: string;
+  formatted: string;
 }
 
 // Audit Log
