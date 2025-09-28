@@ -42,7 +42,7 @@ export async function incidentsMapData(request: HttpRequest, context: Invocation
     const result = await incidentService.getMapData(parish);
 
     if (!result.success) {
-      context.log.error('Failed to fetch map data:', result.error);
+      context.error('Failed to fetch map data:', result.error);
       return { status: 500, jsonBody: result };
     }
 
@@ -63,7 +63,7 @@ export async function incidentsMapData(request: HttpRequest, context: Invocation
     };
 
   } catch (error) {
-    context.log.error('Error processing map data request:', error);
+    context.error('Error processing map data request:', error);
     return { status: 500, jsonBody: { success: false, error: 'Internal server error' } };
   }
 }

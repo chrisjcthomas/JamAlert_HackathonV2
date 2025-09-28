@@ -89,7 +89,7 @@ export async function incidentsList(request: HttpRequest, context: InvocationCon
     });
 
     if (!result.success) {
-      context.log.error('Failed to fetch incidents:', result.error);
+      context.error('Failed to fetch incidents:', result.error);
       return {
         status: 500,
         jsonBody: result
@@ -116,7 +116,7 @@ export async function incidentsList(request: HttpRequest, context: InvocationCon
     };
 
   } catch (error) {
-    context.log.error('Error processing incidents list request:', error);
+    context.error('Error processing incidents list request:', error);
     
     return {
       status: 500,

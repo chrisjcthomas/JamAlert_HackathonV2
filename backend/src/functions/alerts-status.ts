@@ -108,7 +108,7 @@ export async function alertsStatus(request: HttpRequest, context: InvocationCont
       };
 
     } catch (error) {
-      context.log.error('Failed to get alert status:', error);
+      context.error('Failed to get alert status:', error);
       
       return {
         status: 500,
@@ -123,7 +123,7 @@ export async function alertsStatus(request: HttpRequest, context: InvocationCont
     }
 
   } catch (error) {
-    context.log.error('Alert status function error:', error);
+    context.error('Alert status function error:', error);
     
     return {
       status: 500,

@@ -22,7 +22,7 @@ class TelemetryService {
     try {
       if (context) {
         // Use Azure Functions built-in telemetry
-        context.log.metric(name, value, properties);
+        context.logMetric(name, value, properties);
       }
 
       // Also log to console for local development
@@ -39,7 +39,7 @@ class TelemetryService {
     try {
       if (context) {
         // Use Azure Functions built-in telemetry
-        context.log.info(`EVENT: ${name}`, { properties, measurements });
+        context.info(`EVENT: ${name}`, { properties, measurements });
       }
 
       // Also log to console for local development
@@ -55,7 +55,7 @@ class TelemetryService {
   logException(error: Error, properties?: Record<string, string>, context?: InvocationContext): void {
     try {
       if (context) {
-        context.log.error('EXCEPTION:', error, properties);
+        context.error('EXCEPTION:', error, properties);
       }
 
       // Also log to console for local development

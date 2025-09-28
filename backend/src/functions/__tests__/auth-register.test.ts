@@ -22,6 +22,7 @@ describe('registerUser Azure Function', () => {
     // Mock InvocationContext
     mockContext = {
       log: jest.fn(),
+      error: jest.fn()
     } as any;
 
     // Mock HttpRequest
@@ -139,7 +140,7 @@ describe('registerUser Azure Function', () => {
 
       expect(result.status).toBe(201);
       expect(result.jsonBody.success).toBe(true);
-      expect(mockContext.log.error).toHaveBeenCalledWith('Failed to send confirmation email:', expect.any(Error));
+      expect(mockContext.error).toHaveBeenCalledWith('Failed to send confirmation email:', expect.any(Error));
     });
   });
 
@@ -262,7 +263,7 @@ describe('registerUser Azure Function', () => {
         error: 'Registration failed. Please try again.',
       });
 
-      expect(mockContext.log.error).toHaveBeenCalledWith('Registration error:', expect.any(Error));
+      expect(mockContext.error).toHaveBeenCalledWith('Registration error:', expect.any(Error));
     });
 
     it('should handle malformed JSON request', async () => {

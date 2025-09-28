@@ -31,7 +31,7 @@ export async function userUnsubscribe(request: HttpRequest, context: InvocationC
       };
     }
   } catch (error) {
-    context.log.error('User unsubscribe error:', error);
+    context.error('User unsubscribe error:', error);
     return {
       status: 500,
       jsonBody: {
@@ -73,7 +73,7 @@ async function getUnsubscribeInfo(userId: string, context: InvocationContext): P
       } as ApiResponse
     };
   } catch (error) {
-    context.log.error('Get unsubscribe info error:', error);
+    context.error('Get unsubscribe info error:', error);
     throw error;
   }
 }
@@ -122,7 +122,7 @@ async function processUnsubscribe(request: HttpRequest, userId: string, context:
     }
 
     // Log the unsubscribe action for analytics
-    context.log.info('User unsubscribe:', {
+    context.info('User unsubscribe:', {
       userId,
       action,
       reason,
@@ -144,7 +144,7 @@ async function processUnsubscribe(request: HttpRequest, userId: string, context:
       } as ApiResponse
     };
   } catch (error) {
-    context.log.error('Process unsubscribe error:', error);
+    context.error('Process unsubscribe error:', error);
     throw error;
   }
 }

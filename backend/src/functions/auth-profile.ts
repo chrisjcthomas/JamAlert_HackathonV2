@@ -67,7 +67,7 @@ export async function authProfile(request: HttpRequest, context: InvocationConte
     };
 
   } catch (error) {
-    context.log.error('Admin profile error:', error);
+    context.error('Admin profile error:', error);
 
     return {
       status: 500,

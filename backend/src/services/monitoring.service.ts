@@ -113,7 +113,7 @@ class MonitoringService {
         details: { userCount }
       };
     } catch (error) {
-      context?.log.error('Database health check failed:', error);
+      context?.error('Database health check failed:', error);
       return {
         service: 'database',
         status: 'unhealthy',
@@ -151,7 +151,7 @@ class MonitoringService {
         details: { status: response.status }
       };
     } catch (error) {
-      context?.log.error('Weather API health check failed:', error);
+      context?.error('Weather API health check failed:', error);
       return {
         service: 'weather_api',
         status: 'unhealthy',
@@ -185,7 +185,7 @@ class MonitoringService {
         details: { configured: true }
       };
     } catch (error) {
-      context?.log.error('Email service health check failed:', error);
+      context?.error('Email service health check failed:', error);
       return {
         service: 'email_service',
         status: 'unhealthy',
@@ -227,7 +227,7 @@ class MonitoringService {
         details: { recentErrors }
       };
     } catch (error) {
-      context?.log.error('Application health check failed:', error);
+      context?.error('Application health check failed:', error);
       return {
         service: 'application',
         status: 'unhealthy',
@@ -313,7 +313,7 @@ class MonitoringService {
         }
       };
     } catch (error) {
-      context?.log.error('Failed to collect performance metrics:', error);
+      context?.error('Failed to collect performance metrics:', error);
       throw error;
     }
   }
@@ -369,7 +369,7 @@ class MonitoringService {
         bandwidthUsed: 0 // Would need Azure monitoring API
       };
     } catch (error) {
-      context?.log.error('Failed to collect usage metrics:', error);
+      context?.error('Failed to collect usage metrics:', error);
       throw error;
     }
   }
@@ -378,7 +378,7 @@ class MonitoringService {
     try {
       // Log to Application Insights if available
       if (context) {
-        context.log.metric(name, value);
+        context.logMetric(name, value);
       }
 
       // Store in database for historical tracking
@@ -390,7 +390,7 @@ class MonitoringService {
         }
       });
     } catch (error) {
-      context?.log.error('Failed to log metric:', error);
+      context?.error('Failed to log metric:', error);
     }
   }
 
@@ -417,9 +417,9 @@ class MonitoringService {
         });
       }
 
-      context?.log.info(`Alert sent to ${adminUsers.length} administrators`);
+      context?.info(`Alert sent to ${adminUsers.length} administrators`);
     } catch (error) {
-      context?.log.error('Failed to alert administrators:', error);
+      context?.error('Failed to alert administrators:', error);
     }
   }
 
@@ -446,9 +446,9 @@ class MonitoringService {
         );
       }
 
-      context?.log.info('Free tier limits checked', { functionUsagePercent });
+      context?.info('Free tier limits checked', { functionUsagePercent });
     } catch (error) {
-      context?.log.error('Failed to check free tier limits:', error);
+      context?.error('Failed to check free tier limits:', error);
     }
   }
 
@@ -483,7 +483,7 @@ class MonitoringService {
         }
       });
 
-      context?.log.info('Data cleanup completed', {
+      context?.info('Data cleanup completed', {
         archivedAlerts: archivedAlerts.count,
         deletedLogs: deletedLogs.count,
         deletedAuditLogs: deletedAuditLogs.count
@@ -492,7 +492,7 @@ class MonitoringService {
       await this.logMetric('cleanup.archived_alerts', archivedAlerts.count, context);
       await this.logMetric('cleanup.deleted_logs', deletedLogs.count, context);
     } catch (error) {
-      context?.log.error('Failed to cleanup old data:', error);
+      context?.error('Failed to cleanup old data:', error);
       throw error;
     }
   }
@@ -523,10 +523,10 @@ class MonitoringService {
       // Update table statistics (MySQL/SQL Server specific)
       await this.prisma.$executeRaw`ANALYZE TABLE users, alerts, incident_reports, alert_delivery_log`;
 
-      context?.log.info('Database optimization completed', { slowQueriesFound: slowQueries.length });
+      context?.info('Database optimization completed', { slowQueriesFound: slowQueries.length });
     } catch (error) {
       // This might fail on some database systems, so we'll log but not throw
-      context?.log.warn('Database optimization failed (may not be supported):', error);
+      context?.warn('Database optimization failed (may not be supported):', error);
     }
   }
 }

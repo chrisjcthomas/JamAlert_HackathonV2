@@ -32,7 +32,8 @@ describe('alerts-status function', () => {
     jest.clearAllMocks();
 
     mockContext = {
-      log: jest.fn() as any
+      log: jest.fn() as any,
+      error: jest.fn() as any
     };
 
     mockRequest = {
@@ -313,7 +314,7 @@ describe('alerts-status function', () => {
 
       await alertsStatus(mockRequest as HttpRequest, mockContext as InvocationContext);
 
-      expect(mockContext.log.error).toHaveBeenCalledWith(
+      expect(mockContext.error).toHaveBeenCalledWith(
         'Failed to get alert status:',
         expect.any(Error)
       );

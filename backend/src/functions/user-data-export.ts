@@ -108,7 +108,7 @@ export async function userDataExport(request: HttpRequest, context: InvocationCo
     });
 
   } catch (error) {
-    context.log.error('User data export error:', error);
+    context.error('User data export error:', error);
 
     await securityService.logSecurityEvent(
       'DATA_EXPORT_ERROR',

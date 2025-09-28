@@ -32,7 +32,7 @@ export async function userProfile(request: HttpRequest, context: InvocationConte
       };
     }
   } catch (error) {
-    context.log.error('User profile error:', error);
+    context.error('User profile error:', error);
     return {
       status: 500,
       jsonBody: {
@@ -68,7 +68,7 @@ async function getUserProfile(userId: string, context: InvocationContext): Promi
       } as ApiResponse
     };
   } catch (error) {
-    context.log.error('Get user profile error:', error);
+    context.error('Get user profile error:', error);
     throw error;
   }
 }
@@ -117,7 +117,7 @@ async function updateUserProfile(request: HttpRequest, userId: string, context: 
       } as ApiResponse
     };
   } catch (error) {
-    context.log.error('Update user profile error:', error);
+    context.error('Update user profile error:', error);
     throw error;
   }
 }

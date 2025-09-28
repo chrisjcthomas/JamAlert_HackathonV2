@@ -17,7 +17,7 @@ export default function AdminLayout({
   const pathname = usePathname()
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && pathname !== "/admin/login") {
       if (!isAuthenticated) {
         router.push("/admin/login")
         return
@@ -28,7 +28,7 @@ export default function AdminLayout({
         return
       }
     }
-  }, [isLoading, isAuthenticated, user, router])
+  }, [isLoading, isAuthenticated, user, router, pathname])
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -39,8 +39,8 @@ export default function AdminLayout({
     )
   }
 
-  // Don't render admin content if not authenticated or not admin
-  if (!isAuthenticated || user?.role !== "admin") {
+  // Don't render admin content if not authenticated or not admin (except on login page)
+  if (pathname !== "/admin/login" && (!isAuthenticated || user?.role !== "admin")) {
     return null
   }
 

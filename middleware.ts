@@ -7,6 +7,11 @@ const adminRoutes = ["/admin"]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  
+  // Skip auth checks for login pages
+  if (pathname === "/login" || pathname === "/admin/login" || pathname === "/register") {
+    return NextResponse.next()
+  }
 
   // Check if the current path is protected
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))

@@ -162,7 +162,7 @@ export async function incidentsReport(request: HttpRequest, context: InvocationC
     const result = await incidentService.createIncidentReport(sanitizedData);
 
     if (!result.success) {
-      context.log.error('Failed to create incident report:', result.error);
+      context.error('Failed to create incident report:', result.error);
       
       await securityService.logSecurityEvent(
         'INCIDENT_REPORT_CREATION_FAILED',
@@ -199,7 +199,7 @@ export async function incidentsReport(request: HttpRequest, context: InvocationC
       context
     );
 
-    context.log.info('Incident report created successfully', {
+    context.info('Incident report created successfully', {
       reportId: result.data?.id,
       parish: sanitizedData.parish,
       incidentType: sanitizedData.incidentType,
@@ -227,7 +227,7 @@ export async function incidentsReport(request: HttpRequest, context: InvocationC
     });
 
   } catch (error) {
-    context.log.error('Error processing incident report:', error);
+    context.error('Error processing incident report:', error);
     
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
     const userAgent = request.headers.get('user-agent');

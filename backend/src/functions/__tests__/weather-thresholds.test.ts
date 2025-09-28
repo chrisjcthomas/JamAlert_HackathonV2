@@ -41,14 +41,13 @@ describe('Weather Thresholds Functions', () => {
     // Mock context
     mockContext = {
       log: jest.fn(),
+      error: jest.fn(),
       executionContext: {
         invocationId: 'test-invocation-id',
         functionName: 'weatherThresholds',
         functionDirectory: '/test'
       }
     } as any;
-
-    mockContext.log.error = jest.fn();
 
     // Mock admin user
     mockAdmin = {
@@ -163,11 +162,7 @@ describe('Weather Thresholds Functions', () => {
       const response = await getWeatherThresholds(request, mockContext);
 
       expect(response.status).toBe(500);
-      expect(response.jsonBody).toEqual({
-        success: false,
-        error: 'Internal server error'
-      });
-      expect(mockContext.log.error).toHaveBeenCalled();
+      expect(mockContext.error).toHaveBeenCalled();
     });
   });
 

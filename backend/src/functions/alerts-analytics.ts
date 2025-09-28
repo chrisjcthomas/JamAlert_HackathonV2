@@ -8,11 +8,10 @@ import { ApiResponse, Parish } from '../types';
  * GET /api/alerts/analytics
  */
 export async function alertsAnalytics(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
-  context.log('Alert analytics function triggered');
-
+  let type: string;
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
+    const admin = await authenticateAdmin(request, context);
     if (!admin) {
       return {
         status: 401,
@@ -133,7 +132,7 @@ export async function alertsAnalytics(request: HttpRequest, context: InvocationC
       };
 
     } catch (error) {
-      context.log.error('Failed to get alert analytics:', error);
+      (context.log as any).error(`Error fetching analytics for type: ${type}`, error);
       
       return {
         status: 500,
@@ -148,7 +147,7 @@ export async function alertsAnalytics(request: HttpRequest, context: InvocationC
     }
 
   } catch (error) {
-    context.log.error('Alert analytics function error:', error);
+    (context.log as any).error('Alert analytics failed:', error);
     
     return {
       status: 500,

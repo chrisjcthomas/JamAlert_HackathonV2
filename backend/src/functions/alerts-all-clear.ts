@@ -27,7 +27,7 @@ export async function alertsAllClear(
 
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
+    const admin = await authenticateAdmin(request, context);
     if (!admin) {
       return {
         status: 401,
@@ -42,7 +42,7 @@ export async function alertsAllClear(
     const body = await request.json() as AllClearRequest;
     const validatedData = allClearRequestSchema.parse(body);
 
-    context.log(`Admin ${admin.email} sending all clear for alert ${validatedData.originalAlertId}`);
+    context.log(`Admin ${admin.user.email} sending all clear for alert ${validatedData.originalAlertId}`);
 
     // Initialize services
     const notificationService = new NotificationService();
@@ -92,7 +92,7 @@ export async function alertsAllClear(
       );
 
       // Log the all clear action
-      await alertService.logAdminAction(admin.id, 'SEND_ALL_CLEAR', 'alert', originalAlert.id, {
+      await alertService.logAdminAction(admin.user.id, 'SEND_ALL_CLEAR', 'alert', originalAlert.id, {
         parishes: validatedData.parishes,
         recipientCount: users.length,
         message: validatedData.message
@@ -119,7 +119,7 @@ export async function alertsAllClear(
     }
 
   } catch (error) {
-    context.log.error('All clear notification failed:', error);
+    (context.log as any).error('All clear notification failed:', error);
 
     if (error instanceof z.ZodError) {
       return {

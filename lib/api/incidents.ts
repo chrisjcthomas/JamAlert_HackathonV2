@@ -250,20 +250,107 @@ export interface MapDataResponse {
   incidents: MapIncident[];
 }
 
+// Mock data for development/demo purposes
+const getMockMapData = (parish?: Parish): MapIncident[] => {
+  const mockIncidents: MapIncident[] = [
+    {
+      id: '1',
+      incidentType: IncidentType.FLOOD,
+      severity: Severity.HIGH,
+      parish: Parish.ST_CATHERINE,
+      latitude: 17.9909,
+      longitude: -76.8844,
+      description: 'Flash flood warning - Heavy rainfall causing flooding in Spanish Town Road area',
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      status: ReportStatus.APPROVED
+    },
+    {
+      id: '2',
+      incidentType: IncidentType.WEATHER,
+      severity: Severity.MEDIUM,
+      parish: Parish.ST_JAMES,
+      latitude: 18.4762,
+      longitude: -77.8937,
+      description: 'Strong wind advisory - Gusty winds expected in coastal areas',
+      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+      status: ReportStatus.RESOLVED
+    },
+    {
+      id: '3',
+      incidentType: IncidentType.ACCIDENT,
+      severity: Severity.MEDIUM,
+      parish: Parish.ST_CATHERINE,
+      latitude: 17.9712,
+      longitude: -76.8958,
+      description: 'Traffic incident - Multi-vehicle accident on A1 Highway',
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      status: ReportStatus.RESOLVED
+    },
+    {
+      id: '4',
+      incidentType: IncidentType.FIRE,
+      severity: Severity.HIGH,
+      parish: Parish.KINGSTON,
+      latitude: 17.9771,
+      longitude: -76.7674,
+      description: 'Building fire - Commercial building on Orange Street',
+      createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+      status: ReportStatus.APPROVED
+    },
+    {
+      id: '5',
+      incidentType: IncidentType.POWER,
+      severity: Severity.LOW,
+      parish: Parish.ST_ANDREW,
+      latitude: 18.0179,
+      longitude: -76.8099,
+      description: 'Power outage affecting Liguanea area',
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+      status: ReportStatus.APPROVED
+    },
+    {
+      id: '6',
+      incidentType: IncidentType.MEDICAL,
+      severity: Severity.HIGH,
+      parish: Parish.ST_ANN,
+      latitude: 18.4147,
+      longitude: -77.1931,
+      description: 'Medical emergency - Ambulance requested for injured person',
+      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+      status: ReportStatus.APPROVED
+    }
+  ];
+
+  // Filter by parish if specified
+  if (parish && parish !== 'all') {
+    return mockIncidents.filter(incident => incident.parish === parish);
+  }
+
+  return mockIncidents;
+};
+
 // Fetch map data for incidents
 export async function fetchMapData(parish?: Parish): Promise<MapDataResponse> {
-  const params = new URLSearchParams();
-  if (parish) {
-    params.append('parish', parish);
+  try {
+    const params = new URLSearchParams();
+    if (parish) {
+      params.append('parish', parish);
+    }
+    
+    const url = `/incidents/map-data${params.toString() ? `?${params.toString()}` : ''}`;
+    const response = await apiClient.get<{ data: MapIncident[] }>(url);
+    
+    return {
+      incidents: response.data.map(incident => ({
+        ...incident,
+        createdAt: new Date(incident.createdAt)
+      }))
+    };
+  } catch (error) {
+    // Fallback to mock data when API is not available
+    console.warn('API not available, using mock data:', error);
+    return {
+      incidents: getMockMapData(parish)
+    };
   }
-  
-  const url = `/incidents/map-data${params.toString() ? `?${params.toString()}` : ''}`;
-  const response = await apiClient.get<{ data: MapIncident[] }>(url);
-  
-  return {
-    incidents: response.data.map(incident => ({
-      ...incident,
-      createdAt: new Date(incident.createdAt)
-    }))
-  };
 }

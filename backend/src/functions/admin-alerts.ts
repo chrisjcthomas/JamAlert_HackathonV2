@@ -20,7 +20,7 @@ export async function adminAlerts(request: HttpRequest, context: InvocationConte
           success: false,
           message: 'Method not allowed'
         })
-      };
+      } as any;
     }
 
     // Authenticate admin user
@@ -32,7 +32,7 @@ export async function adminAlerts(request: HttpRequest, context: InvocationConte
           success: false,
           message: authResult.error || 'Authentication required'
         })
-      };
+      } as any;
     }
 
     const dashboardService = new DashboardService();
@@ -51,11 +51,11 @@ export async function adminAlerts(request: HttpRequest, context: InvocationConte
           success: false,
           message: 'Endpoint not found. Available endpoints: /history, /statistics'
         })
-      };
+      } as any;
     }
 
   } catch (error) {
-    context.log.error('Admin alerts error:', error);
+    (context.log as any).error('Admin alerts error:', error);
 
     return {
       status: 500,
@@ -63,7 +63,7 @@ export async function adminAlerts(request: HttpRequest, context: InvocationConte
         success: false,
         message: 'Internal server error'
       })
-    };
+    } as any;
   }
 }
 
@@ -120,10 +120,10 @@ async function handleGetAlertHistory(
         data: result.alerts,
         pagination: result.pagination
       })
-    };
+    } as any;
 
   } catch (error) {
-    context.log.error('Get alert history error:', error);
+    (context.log as any).error('Get alert history error:', error);
     throw error;
   }
 }
@@ -164,10 +164,10 @@ async function handleGetAlertStatistics(
         success: true,
         data: statistics
       })
-    };
+    } as any;
 
   } catch (error) {
-    context.log.error('Get alert statistics error:', error);
+    (context.log as any).error('Get alert statistics error:', error);
     throw error;
   }
 }

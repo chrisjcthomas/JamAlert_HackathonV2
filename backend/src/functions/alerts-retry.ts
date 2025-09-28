@@ -111,7 +111,7 @@ export async function alertsRetry(request: HttpRequest, context: InvocationConte
       };
 
     } catch (error) {
-      context.log.error('Failed to retry alert deliveries:', error);
+      context.error('Failed to retry alert deliveries:', error);
       
       return {
         status: 500,
@@ -126,7 +126,7 @@ export async function alertsRetry(request: HttpRequest, context: InvocationConte
     }
 
   } catch (error) {
-    context.log.error('Alert retry function error:', error);
+    context.error('Alert retry function error:', error);
     
     return {
       status: 500,

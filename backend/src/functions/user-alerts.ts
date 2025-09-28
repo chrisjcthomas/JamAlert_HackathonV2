@@ -29,7 +29,7 @@ export async function userAlerts(request: HttpRequest, context: InvocationContex
       };
     }
   } catch (error) {
-    context.log.error('User alerts error:', error);
+    context.error('User alerts error:', error);
     return {
       status: 500,
       jsonBody: {
@@ -70,7 +70,7 @@ export async function userAlertFeedback(request: HttpRequest, context: Invocatio
       };
     }
   } catch (error) {
-    context.log.error('User alert feedback error:', error);
+    context.error('User alert feedback error:', error);
     return {
       status: 500,
       jsonBody: {
@@ -109,7 +109,7 @@ async function getUserAlertsHistory(request: HttpRequest, userId: string, contex
       } as PaginatedResponse<any>
     };
   } catch (error) {
-    context.log.error('Get user alerts history error:', error);
+    context.error('Get user alerts history error:', error);
     throw error;
   }
 }
@@ -145,7 +145,7 @@ async function submitUserAlertFeedback(request: HttpRequest, userId: string, ale
       } as ApiResponse
     };
   } catch (error) {
-    context.log.error('Submit alert feedback error:', error);
+    context.error('Submit alert feedback error:', error);
     throw error;
   }
 }
@@ -162,7 +162,7 @@ async function getUserAlertFeedbackData(userId: string, alertId: string, context
       } as ApiResponse
     };
   } catch (error) {
-    context.log.error('Get user alert feedback error:', error);
+    context.error('Get user alert feedback error:', error);
     throw error;
   }
 }

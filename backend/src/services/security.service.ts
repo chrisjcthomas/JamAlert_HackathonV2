@@ -60,9 +60,9 @@ export class SecurityService {
   ): Promise<void> {
     const logMessage = `SECURITY_EVENT: ${eventType} - Endpoint: ${endpoint}, IP: ${clientIp}, Success: ${success}, UserId: ${userId || 'N/A'}, UserAgent: ${userAgent || 'N/A'}, Details: ${JSON.stringify(details)}`;
     if (success) {
-      context.log.info(logMessage);
+      context.info(logMessage);
     } else {
-      context.log.warn(logMessage);
+      context.warn(logMessage);
     }
   }
 

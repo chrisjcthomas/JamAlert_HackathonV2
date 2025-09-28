@@ -114,7 +114,7 @@ export async function authLogin(request: HttpRequest, context: InvocationContext
     };
 
   } catch (error) {
-    context.log.error('Admin login error:', error);
+    context.error('Admin login error:', error);
 
     return {
       status: 500,

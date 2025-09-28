@@ -141,7 +141,7 @@ export class SecurityMiddleware {
 
       return null; // Continue processing
     } catch (error) {
-      context.log.error('Security middleware error:', error);
+      context.error('Security middleware error:', error);
       
       await this.securityService.logSecurityEvent(
         'SECURITY_MIDDLEWARE_ERROR',

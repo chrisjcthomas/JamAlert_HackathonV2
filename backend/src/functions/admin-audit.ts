@@ -14,11 +14,11 @@ export async function adminAudit(request: HttpRequest, context: InvocationContex
     if (request.method !== 'GET') {
       return {
         status: 405,
-        body: JSON.stringify({
+        jsonBody: {
           success: false,
           message: 'Method not allowed'
-        })
-      };
+        }
+      } as any;
     }
 
     // Authenticate admin user
@@ -30,7 +30,7 @@ export async function adminAudit(request: HttpRequest, context: InvocationContex
           success: false,
           message: authResult.error || 'Authentication required'
         })
-      };
+      } as any;
     }
 
     // Check if user has admin role for audit log access
@@ -41,7 +41,7 @@ export async function adminAudit(request: HttpRequest, context: InvocationContex
           success: false,
           message: 'Admin role required for audit log access'
         })
-      };
+      } as any;
     }
 
     const dashboardService = new DashboardService();
@@ -88,18 +88,18 @@ export async function adminAudit(request: HttpRequest, context: InvocationContex
         data: result.logs,
         pagination: result.pagination
       })
-    };
+    } as any;
 
   } catch (error) {
-    context.log.error('Admin audit logs error:', error);
+    (context.log as any).error('Admin audit logs error:', error);
 
     return {
       status: 500,
-      body: JSON.stringify({
+      jsonBody: {
         success: false,
         message: 'Internal server error'
-      })
-    };
+      }
+    } as any;
   }
 }
 

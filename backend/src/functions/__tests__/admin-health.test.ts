@@ -15,11 +15,9 @@ describe('adminHealth', () => {
 
   beforeEach(() => {
     mockContext = {
-      log: {
-        info: jest.fn(),
-        error: jest.fn(),
-        warn: jest.fn()
-      }
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn()
     } as any;
 
     jest.clearAllMocks();
@@ -79,7 +77,7 @@ describe('adminHealth', () => {
         error: 'Internal server error',
         message: 'Service unavailable'
       });
-      expect(mockContext.log.error).toHaveBeenCalledWith(
+      expect(mockContext.error).toHaveBeenCalledWith(
         'Admin health check failed:',
         expect.any(Error)
       );

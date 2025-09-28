@@ -5,7 +5,7 @@ import { monitoringService } from '../services/monitoring.service';
 export async function adminHealth(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
+    const admin = await authenticateAdmin(request, context);
     if (!admin) {
       return {
         status: 401,
@@ -73,7 +73,7 @@ export async function adminHealth(request: HttpRequest, context: InvocationConte
     };
 
   } catch (error) {
-    context.log.error('Admin health check failed:', error);
+    (context.log as any).error('Admin health check failed:', error);
     
     return {
       status: 500,

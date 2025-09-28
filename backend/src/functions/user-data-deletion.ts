@@ -151,7 +151,7 @@ export async function userDataDeletion(request: HttpRequest, context: Invocation
     }
 
   } catch (error) {
-    context.log.error('User data deletion error:', error);
+    context.error('User data deletion error:', error);
 
     await securityService.logSecurityEvent(
       'DATA_DELETION_ERROR',

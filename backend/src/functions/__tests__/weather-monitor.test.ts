@@ -108,17 +108,14 @@ describe('weatherMonitor', () => {
     // Mock context
     mockContext = {
       log: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
       executionContext: {
         invocationId: 'test-invocation-id',
         functionName: 'weatherMonitor',
         functionDirectory: '/test'
       }
     } as any;
-
-    mockContext.log.warn = jest.fn();
-    mockContext.warn = mockContext.log.warn;
-    mockContext.log.error = jest.fn();
-    mockContext.error = mockContext.log.error;
 
     // Mock timer
     mockTimer = {
@@ -199,7 +196,7 @@ describe('weatherMonitor', () => {
 
       await weatherMonitor(mockTimer, mockContext);
 
-      expect(mockContext.log.warn).toHaveBeenCalledWith('No weather data retrieved - all API calls failed');
+      expect(mockContext.warn).toHaveBeenCalledWith('No weather data retrieved - all API calls failed');
       expect(mockWeatherService.storeWeatherData).not.toHaveBeenCalled();
       expect(mockWeatherService.checkThresholds).not.toHaveBeenCalled();
     });
@@ -210,7 +207,7 @@ describe('weatherMonitor', () => {
 
       await expect(weatherMonitor(mockTimer, mockContext)).rejects.toThrow('Weather API failed');
 
-      expect(mockContext.log.error).toHaveBeenCalledWith('Weather monitoring failed', {
+      expect(mockContext.error).toHaveBeenCalledWith('Weather monitoring failed', {
         error: 'Weather API failed',
         stack: expect.any(String),
         executionTimeMs: expect.any(Number)

@@ -111,7 +111,7 @@ export async function alertsHistory(request: HttpRequest, context: InvocationCon
       };
 
     } catch (error) {
-      context.log.error('Failed to get alert history:', error);
+      context.error('Failed to get alert history:', error);
       
       return {
         status: 500,
@@ -126,7 +126,7 @@ export async function alertsHistory(request: HttpRequest, context: InvocationCon
     }
 
   } catch (error) {
-    context.log.error('Alert history function error:', error);
+    context.error('Alert history function error:', error);
     
     return {
       status: 500,

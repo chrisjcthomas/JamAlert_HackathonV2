@@ -3,7 +3,7 @@ import { monitoringService } from '../services/monitoring.service';
 
 export async function dailyCleanup(myTimer: Timer, context: InvocationContext): Promise<void> {
   try {
-    context.log.info('Daily cleanup started');
+    context.info('Daily cleanup started');
 
     // Perform data cleanup
     await monitoringService.cleanupOldData(context);
@@ -58,10 +58,10 @@ export async function dailyCleanup(myTimer: Timer, context: InvocationContext): 
       context
     );
 
-    context.log.info('Daily cleanup completed successfully');
+    context.info('Daily cleanup completed successfully');
 
   } catch (error) {
-    context.log.error('Daily cleanup failed:', error);
+    context.error('Daily cleanup failed:', error);
     
     // Alert administrators about cleanup failure
     try {
@@ -71,7 +71,7 @@ export async function dailyCleanup(myTimer: Timer, context: InvocationContext): 
         context
       );
     } catch (alertError) {
-      context.log.error('Failed to send cleanup failure alert:', alertError);
+      context.error('Failed to send cleanup failure alert:', alertError);
     }
   }
 }

@@ -35,7 +35,7 @@ async function performanceMonitor(request: HttpRequest, context: InvocationConte
     }
 
   } catch (error) {
-    context.log.error('Performance monitor error:', error);
+    context.error('Performance monitor error:', error);
     return {
       status: 500,
       jsonBody: {
@@ -67,7 +67,7 @@ async function generatePerformanceReport(context: InvocationContext): Promise<Ht
     };
 
   } catch (error) {
-    context.log.error('Failed to generate performance report:', error);
+    context.error('Failed to generate performance report:', error);
     return {
       status: 500,
       jsonBody: {
@@ -106,7 +106,7 @@ async function analyzePerformance(context: InvocationContext): Promise<HttpRespo
     };
 
   } catch (error) {
-    context.log.error('Failed to analyze performance:', error);
+    context.error('Failed to analyze performance:', error);
     return {
       status: 500,
       jsonBody: {
@@ -143,7 +143,7 @@ async function optimizePerformance(context: InvocationContext): Promise<HttpResp
     };
 
   } catch (error) {
-    context.log.error('Failed to run performance optimizations:', error);
+    context.error('Failed to run performance optimizations:', error);
     return {
       status: 500,
       jsonBody: {
@@ -172,7 +172,7 @@ async function getRecommendations(context: InvocationContext): Promise<HttpRespo
     };
 
   } catch (error) {
-    context.log.error('Failed to get performance recommendations:', error);
+    context.error('Failed to get performance recommendations:', error);
     return {
       status: 500,
       jsonBody: {

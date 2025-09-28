@@ -83,7 +83,7 @@ export async function getWeatherThresholds(request: HttpRequest, context: Invoca
     }
 
   } catch (error) {
-    context.log.error('Error getting weather thresholds:', error);
+    context.error('Error getting weather thresholds:', error);
     return {
       status: 500,
       jsonBody: {
@@ -153,7 +153,7 @@ export async function updateWeatherThresholds(request: HttpRequest, context: Inv
     };
 
   } catch (error) {
-    context.log.error('Error updating weather thresholds:', error);
+    context.error('Error updating weather thresholds:', error);
     return {
       status: 500,
       jsonBody: {
@@ -248,7 +248,7 @@ export async function getCurrentWeather(request: HttpRequest, context: Invocatio
     }
 
   } catch (error) {
-    context.log.error('Error getting current weather:', error);
+    context.error('Error getting current weather:', error);
     return {
       status: 500,
       jsonBody: {
@@ -319,7 +319,7 @@ export async function triggerWeatherCheck(request: HttpRequest, context: Invocat
     };
 
   } catch (error) {
-    context.log.error('Error in manual weather check:', error);
+    context.error('Error in manual weather check:', error);
     return {
       status: 500,
       jsonBody: {

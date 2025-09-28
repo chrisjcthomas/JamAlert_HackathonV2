@@ -3,7 +3,7 @@ import { monitoringService } from '../services/monitoring.service';
 
 export async function systemMonitor(myTimer: Timer, context: InvocationContext): Promise<void> {
   try {
-    context.log.info('System monitoring started');
+    context.info('System monitoring started');
 
     // Check system health
     const health = await monitoringService.checkSystemHealth(context);
@@ -44,7 +44,7 @@ export async function systemMonitor(myTimer: Timer, context: InvocationContext):
     await monitoringService.logMetric('alerts.sent', usageMetrics.alertsSent, context);
     await monitoringService.logMetric('incidents.reported', usageMetrics.incidentReports, context);
 
-    context.log.info('System monitoring completed', {
+    context.info('System monitoring completed', {
       overallHealth: health.overall,
       totalUsers: usageMetrics.totalUsers,
       activeUsers: usageMetrics.activeUsers,
@@ -52,7 +52,7 @@ export async function systemMonitor(myTimer: Timer, context: InvocationContext):
     });
 
   } catch (error) {
-    context.log.error('System monitoring failed:', error);
+    context.error('System monitoring failed:', error);
     
     // Try to alert administrators about monitoring failure
     try {
@@ -62,7 +62,7 @@ export async function systemMonitor(myTimer: Timer, context: InvocationContext):
         context
       );
     } catch (alertError) {
-      context.log.error('Failed to send monitoring failure alert:', alertError);
+      context.error('Failed to send monitoring failure alert:', alertError);
     }
   }
 }

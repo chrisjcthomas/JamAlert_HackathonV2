@@ -33,7 +33,8 @@ describe('alerts-retry function', () => {
     jest.clearAllMocks();
 
     mockContext = {
-      log: jest.fn() as any
+      log: jest.fn() as any,
+      error: jest.fn() as any
     };
 
     mockRequest = {
@@ -387,7 +388,7 @@ describe('alerts-retry function', () => {
 
       await alertsRetry(mockRequest as HttpRequest, mockContext as InvocationContext);
 
-      expect(mockContext.log.error).toHaveBeenCalledWith(
+      expect(mockContext.error).toHaveBeenCalledWith(
         'Failed to retry alert deliveries:',
         expect.any(Error)
       );

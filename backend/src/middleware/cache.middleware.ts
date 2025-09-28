@@ -132,7 +132,7 @@ export async function cacheMiddleware(
     return response;
     
   } catch (error) {
-    context.log.error(`Cache middleware error for key ${cacheKey}:`, error);
+    context.error(`Cache middleware error for key ${cacheKey}:`, error);
     // Continue without caching on error
     return await next();
   }

@@ -112,7 +112,7 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
       await emailService.sendRegistrationConfirmation(newUser);
       context.log(`Confirmation email sent to: ${newUser.email}`);
     } catch (emailError) {
-      context.log.error('Failed to send confirmation email:', emailError);
+      context.error('Failed to send confirmation email:', emailError);
       // Don't fail registration if email fails - log and continue
     }
 
@@ -133,7 +133,7 @@ export async function registerUser(request: HttpRequest, context: InvocationCont
     });
 
   } catch (error) {
-    context.log.error('Registration error:', error);
+    context.error('Registration error:', error);
 
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
     const userAgent = request.headers.get('user-agent');

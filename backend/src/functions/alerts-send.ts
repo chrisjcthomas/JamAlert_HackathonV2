@@ -159,7 +159,7 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
       };
 
     } catch (error) {
-      context.log.error('Alert dispatch failed:', error);
+      context.error('Alert dispatch failed:', error);
       
       const duration = Date.now() - startTime;
       telemetryService.trackApiCall('/api/alerts/send', 'POST', 500, duration, context);
@@ -179,7 +179,7 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
     }
 
   } catch (error) {
-    context.log.error('Alert dispatch function error:', error);
+    context.error('Alert dispatch function error:', error);
     
     const duration = Date.now() - startTime;
     telemetryService.trackApiCall('/api/alerts/send', 'POST', 500, duration, context);
