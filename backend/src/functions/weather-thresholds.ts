@@ -23,8 +23,8 @@ const updateThresholdsSchema = z.object({
 export async function getWeatherThresholds(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
+    const admin = await authenticateAdmin(request, context);
+    if (!admin.success || !admin.user) {
       return {
         status: 401,
         jsonBody: { success: false, error: 'Unauthorized' }
@@ -101,8 +101,8 @@ export async function getWeatherThresholds(request: HttpRequest, context: Invoca
 export async function updateWeatherThresholds(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
+    const admin = await authenticateAdmin(request, context);
+    if (!admin.success || !admin.user) {
       return {
         status: 401,
         jsonBody: { success: false, error: 'Unauthorized' }
@@ -134,7 +134,7 @@ export async function updateWeatherThresholds(request: HttpRequest, context: Inv
 
     // Log the admin action
     context.log('Weather thresholds updated', {
-      adminId: admin.id,
+      adminId: admin.user.id,
       parish,
       thresholds: {
         rainfallThreshold,
@@ -171,8 +171,8 @@ export async function updateWeatherThresholds(request: HttpRequest, context: Inv
 export async function getCurrentWeather(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
+    const admin = await authenticateAdmin(request, context);
+    if (!admin.success || !admin.user) {
       return {
         status: 401,
         jsonBody: { success: false, error: 'Unauthorized' }
@@ -266,8 +266,8 @@ export async function getCurrentWeather(request: HttpRequest, context: Invocatio
 export async function triggerWeatherCheck(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
+    const admin = await authenticateAdmin(request, context);
+    if (!admin.success || !admin.user) {
       return {
         status: 401,
         jsonBody: { success: false, error: 'Unauthorized' }
@@ -277,7 +277,7 @@ export async function triggerWeatherCheck(request: HttpRequest, context: Invocat
     const weatherService = new WeatherService();
 
     // Fetch fresh weather data
-    context.log('Manual weather check triggered by admin', { adminId: admin.id });
+    context.log('Manual weather check triggered by admin', { adminId: admin.user.id });
     const weatherData = await weatherService.fetchAllWeatherData();
     
     if (weatherData.length === 0) {

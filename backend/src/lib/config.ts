@@ -62,7 +62,7 @@ const configSchema = z.object({
 /**
  * Parsed and validated configuration
  */
-let config: z.infer<typeof configSchema> | null = null;
+export let config: z.infer<typeof configSchema> | null = null;
 
 /**
  * Get application configuration with validation

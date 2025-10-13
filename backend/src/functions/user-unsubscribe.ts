@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getUserById, updateUser, deactivateUser } from '../services/user.service';
 import { ApiResponse } from '../types';

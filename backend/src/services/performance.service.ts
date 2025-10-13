@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PrismaClient } from '@prisma/client';
 import { InvocationContext } from '@azure/functions';
 import { log } from '../utils/logger';

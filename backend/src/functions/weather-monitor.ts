@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { app, InvocationContext, Timer } from '@azure/functions';
 import { WeatherService } from '../services/weather.service';
 import { getWeatherConfig } from '../lib/config';

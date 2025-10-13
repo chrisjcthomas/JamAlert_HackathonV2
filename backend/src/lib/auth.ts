@@ -63,7 +63,9 @@ export class PasswordService {
  * JWT token utilities
  */
 export class TokenService {
-  private static config = getJwtConfig();
+  private static get config() {
+    return getJwtConfig();
+  }
 
   /**
    * Generate JWT token

@@ -2,7 +2,7 @@
   "name": "jamalert-backend",
   "version": "1.0.0",
   "description": "JamAlert Community Alert System Backend",
-  "main": "dist/src/functions/*.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",

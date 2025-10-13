@@ -25,8 +25,8 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
     telemetryService.logEvent('api.call.started', { endpoint: '/api/alerts/send', method: 'POST' }, undefined, context);
 
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
+    const admin = await authenticateAdmin(request, context);
+    if (!admin.success || !admin.user) {
       const duration = Date.now() - startTime;
       telemetryService.trackApiCall('/api/alerts/send', 'POST', 401, duration, context);
       return {
@@ -93,7 +93,7 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
       context.log(`Dispatching alert to parishes: ${requestData.parishes.join(', ')}`);
       
       const alertStartTime = Date.now();
-      const result = await alertService.dispatchAlert(requestData, admin.id);
+      const result = await alertService.dispatchAlert(requestData, admin.user.id);
       const alertDeliveryTime = Date.now() - alertStartTime;
 
       // Track alert delivery performance
@@ -115,8 +115,8 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
         alertId: result.alert.id,
         type: result.alert.type,
         severity: result.alert.severity,
-        parishes: result.alert.parishes.join(','),
-        adminId: admin.id
+        parishes: Array.isArray(result.alert.parishes) ? result.alert.parishes.join(',') : String(result.alert.parishes),
+        adminId: admin.user.id
       }, {
         recipients: result.dispatchResult.totalRecipients,
         successCount: result.dispatchResult.successCount,
@@ -164,7 +164,7 @@ export async function alertsSend(request: HttpRequest, context: InvocationContex
       const duration = Date.now() - startTime;
       telemetryService.trackApiCall('/api/alerts/send', 'POST', 500, duration, context);
       telemetryService.trackError('alert_dispatch', 'alerts-send', true, context);
-      telemetryService.logException(error as Error, { adminId: admin.id }, context);
+      telemetryService.logException(error as Error, { adminId: admin.user.id }, context);
       
       return {
         status: 500,

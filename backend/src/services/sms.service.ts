@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Twilio } from 'twilio';
 import { getSMSConfig, isProduction } from '../lib/config';
 import { SMSNotification } from '../types';

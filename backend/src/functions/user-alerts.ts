@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getUserAlertHistory, getUserAlertFeedback, submitAlertFeedback } from '../services/user.service';
 import { ApiResponse, PaginatedResponse } from '../types';

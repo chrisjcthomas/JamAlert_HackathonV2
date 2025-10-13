@@ -367,3 +367,20 @@ Alert ID: ${notification.alertId}
     this.transporter.close();
   }
 }
+
+// Lazy singleton instance
+let emailServiceInstance: EmailService | null = null;
+
+export function getEmailService(): EmailService {
+  if (!emailServiceInstance) {
+    emailServiceInstance = new EmailService();
+  }
+  return emailServiceInstance;
+}
+
+// Deprecated: Use getEmailService() instead
+export const emailService = new Proxy({} as EmailService, {
+  get(_target, prop) {
+    return (getEmailService() as any)[prop];
+  }
+});

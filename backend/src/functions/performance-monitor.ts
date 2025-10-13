@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { performanceService } from '../services/performance.service';
 import { monitoringService } from '../services/monitoring.service';

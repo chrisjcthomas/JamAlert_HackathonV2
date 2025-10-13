@@ -200,3 +200,6 @@ export function createForbiddenResponse(message: string = 'Insufficient permissi
 
 // Backward-compatible alias for tests expecting authenticateAdmin
 export { requireAdminAuth as authenticateAdmin };
+
+// Backward-compatible alias for tests expecting authenticateUser
+export { requireUserAuth as authenticateUser };

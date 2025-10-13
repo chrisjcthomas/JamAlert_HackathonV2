@@ -25,3 +25,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Azure Functions
+backend/local.settings.json
+backend/dist/
+backend/node_modules/
+backend/.azure/
+
+# Deployment artifacts
+*.zip
+backend/deploy-temp/
+backend/deploy-v2/
+backend/test-function/
+deploy-final/
+*.log
+
+# Scripts and temporary files
+*.ps1
+*.bat
+*.sh
+
+# IDE and OS files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Package manager lock files (keep pnpm-lock.yaml only)
+package-lock.json
+backend/package-lock.json

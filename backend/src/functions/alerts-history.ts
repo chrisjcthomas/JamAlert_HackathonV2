@@ -12,8 +12,8 @@ export async function alertsHistory(request: HttpRequest, context: InvocationCon
 
   try {
     // Authenticate admin user
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
+    const admin = await authenticateAdmin(request, context);
+    if (!admin.success || !admin.user) {
       return {
         status: 401,
         jsonBody: {
