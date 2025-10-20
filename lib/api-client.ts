@@ -196,10 +196,16 @@ class ApiClient {
 
     const url = `${this.baseUrl}${endpoint}`;
 
-    const defaultHeaders = {
+    // Add auth token to headers if available
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
+    const defaultHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
+    
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
 
     try {
       const response = await fetch(url, {

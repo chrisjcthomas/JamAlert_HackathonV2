@@ -213,7 +213,7 @@ export class NotificationService {
    * Send notifications to multiple users with batch processing
    */
   async sendBatchNotifications(
-    users: User[],
+    users: any[],
     alert: Alert,
     batchSize: number = 100,
     rateLimitDelay: number = 1000
@@ -305,7 +305,7 @@ export class NotificationService {
   /**
    * Send notifications to a single user with intelligent fallback logic
    */
-  async sendUserNotifications(user: User, alert: Alert): Promise<NotificationResult[]> {
+  async sendUserNotifications(user: any, alert: Alert): Promise<NotificationResult[]> {
     const results: NotificationResult[] = [];
     const payload = this.createNotificationPayload(alert);
 

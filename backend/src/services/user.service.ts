@@ -4,6 +4,7 @@ import { getPrismaClient, withRetry, DatabaseError } from '../lib/database';
 import { UserRegistrationRequest, CreateUserData, UpdateUserData } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { SecurityService } from './security.service';
+import bcrypt from 'bcryptjs';
 
 export class UserService {
   private prisma = getPrismaClient();
@@ -14,12 +15,16 @@ export class UserService {
    */
   async create(userData: UserRegistrationRequest): Promise<User> {
     return withRetry(async () => {
+      // Hash the password
+      const passwordHash = await bcrypt.hash(userData.password, 10);
+      
       const user = await this.prisma.user.create({
         data: {
           id: uuidv4(),
           firstName: userData.firstName,
           lastName: userData.lastName,
           email: userData.email.toLowerCase().trim(),
+          passwordHash,
           phone: userData.phone ? this.securityService.encrypt(userData.phone.trim()) : null,
           parish: userData.parish,
           address: userData.address ? this.securityService.encrypt(userData.address.trim()) : null,
@@ -52,6 +57,39 @@ export class UserService {
       }
       return user;
     }, 'Find user by email');
+  }
+
+  /**
+   * Authenticate user with email and password
+   */
+  async authenticateUser(email: string, password: string): Promise<User | null> {
+    return withRetry(async () => {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email: email.toLowerCase().trim(),
+        },
+      });
+
+      if (!user || !user.isActive) {
+        return null;
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        return null;
+      }
+
+      // Decrypt sensitive fields before returning
+      if (user.phone) {
+        user.phone = this.securityService.decrypt(user.phone);
+      }
+      if (user.address) {
+        user.address = this.securityService.decrypt(user.address);
+      }
+
+      return user;
+    }, 'Authenticate user');
   }
 
   /**

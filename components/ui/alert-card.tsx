@@ -14,10 +14,11 @@ interface AlertCardProps {
     time: string
     status: string
   }
+  variant?: "full" | "compact" | "list"
   className?: string
 }
 
-export function AlertCard({ alert, className }: AlertCardProps) {
+export function AlertCard({ alert, variant = "full", className }: AlertCardProps) {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "high":

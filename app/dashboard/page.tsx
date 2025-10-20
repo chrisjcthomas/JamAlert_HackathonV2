@@ -3,10 +3,12 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { AlertCard } from "@/components/ui/alert-card"
 import { Shield, Bell, MapPin, Clock, Settings, LogOut, User } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // Mock user alerts data
 const userAlerts = [
@@ -35,41 +37,6 @@ const userAlerts = [
 function DashboardContent() {
   const { user, signOut } = useAuth()
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "bg-destructive text-destructive-foreground"
-      case "medium":
-        return "bg-warning text-warning-foreground"
-      case "low":
-        return "bg-success text-success-foreground"
-      default:
-        return "bg-muted text-muted-foreground"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-destructive/10 text-destructive border-destructive/20"
-      case "resolved":
-        return "bg-success/10 text-success border-success/20"
-      default:
-        return "bg-muted/10 text-muted-foreground border-muted/20"
-    }
-  }
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "flood":
-        return "🌊"
-      case "power":
-        return "⚡"
-      default:
-        return "📍"
-    }
-  }
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -80,14 +47,35 @@ function DashboardContent() {
             <span className="text-lg font-semibold text-foreground">JamAlert</span>
           </div>
           <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/my-alerts">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  <Bell className="h-4 w-4 mr-2" />
+                  My Alerts
+                </Button>
+              </Link>
+              <Link href="/report">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  Report
+                </Button>
+              </Link>
+              <Link href="/map">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Map
+                </Button>
+              </Link>
+            </div>
+            <ThemeToggle />
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="h-4 w-4" />
               {user?.name}
             </div>
-            <Button variant="outline" size="sm" className="border-border hover:border-primary bg-transparent">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -164,43 +152,29 @@ function DashboardContent() {
           <CardContent>
             <div className="space-y-4">
               {userAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
-                >
-                  <div className="text-2xl">{getTypeIcon(alert.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{alert.title}</h3>
-                        <p className="text-sm text-muted-foreground">{alert.description}</p>
-                      </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Badge className={getSeverityColor(alert.severity)}>{alert.severity}</Badge>
-                        <Badge variant="outline" className={getStatusColor(alert.status)}>
-                          {alert.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {alert.location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {alert.time}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <AlertCard key={alert.id} alert={alert} variant="full" />
               ))}
             </div>
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="bg-card border-border hover:border-primary/50 transition-colors">
+            <CardContent className="p-6 text-center">
+              <div className="p-3 rounded-lg bg-primary/10 w-fit mx-auto mb-4">
+                <Bell className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">My Alerts</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                View your alert history and manage preferences
+              </p>
+              <Link href="/my-alerts">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">View Alerts</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           <Card className="bg-card border-border hover:border-primary/50 transition-colors">
             <CardContent className="p-6 text-center">
               <div className="p-3 rounded-lg bg-warning/10 w-fit mx-auto mb-4">
@@ -211,7 +185,7 @@ function DashboardContent() {
                 Help your community by reporting incidents in your area
               </p>
               <Link href="/report">
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Report Now</Button>
+                <Button variant="outline" className="border-border hover:border-primary bg-transparent">Report Now</Button>
               </Link>
             </CardContent>
           </Card>

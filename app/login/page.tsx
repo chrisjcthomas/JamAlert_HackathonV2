@@ -30,7 +30,7 @@ export default function LoginPage() {
             <CardDescription className="text-muted-foreground">Sign in to access your JamAlert account</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <LoginForm redirectTo="/dashboard" showDemoCredentials={true} />
+            <LoginForm redirectTo="/dashboard" />
 
             <div className="text-center">
               <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">

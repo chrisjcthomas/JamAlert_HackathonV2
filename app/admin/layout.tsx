@@ -50,7 +50,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <AdminSidebar />
       <div className="lg:pl-64">
         <AdminHeader />

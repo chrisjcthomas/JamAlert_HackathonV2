@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { type AuthState, signIn as authSignIn, signOut as authSignOut, getCurrentUser } from "@/lib/auth"
 
 interface AuthContextType extends AuthState {
-  signIn: (email: string, password: string) => Promise<boolean>
+  signIn: (email: string, password: string, isAdmin?: boolean) => Promise<boolean>
   signOut: () => void
   refreshUser: () => void
 }
@@ -31,11 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser()
   }, [])
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const signIn = async (email: string, password: string, isAdmin = false): Promise<boolean> => {
     setAuthState((prev) => ({ ...prev, isLoading: true }))
 
     try {
-      const result = await authSignIn(email, password)
+      const result = await authSignIn(email, password, isAdmin)
       if (result) {
         setAuthState({
           user: result.user,

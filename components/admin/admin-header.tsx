@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogOut, User, Settings } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function AdminHeader() {
   const { user, signOut } = useAuth()
@@ -29,11 +30,12 @@ export function AdminHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b bg-white px-6 py-4">
+    <header className="sticky top-0 z-20 border-b bg-background px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex-1" />
         
         <div className="flex items-center space-x-4">
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">

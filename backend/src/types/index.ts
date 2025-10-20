@@ -45,6 +45,9 @@ export {
   WeatherAlertType
 };
 
+// User types for notifications (without sensitive data)
+export type UserForNotification = Omit<User, 'passwordHash'>;
+
 // API Request/Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -67,6 +70,7 @@ export interface UserRegistrationRequest {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
   phone?: string;
   parish: Parish;
   address?: string;

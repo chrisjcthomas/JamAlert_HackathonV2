@@ -14,6 +14,7 @@ import { authService } from "@/lib/api/auth"
 import { getErrorMessage, getValidationErrors } from "@/lib/api-client"
 import { formDataToApiRequest, PARISH_NAMES, Parish } from "@/lib/types"
 import type { RegistrationFormData } from "@/lib/types"
+import { useAuth } from "@/hooks/use-auth"
 
 // Get parish display names from the types
 const parishes = Object.values(PARISH_NAMES)
@@ -23,6 +24,8 @@ export function RegisterForm() {
         firstName: "",
         lastName: "",
         email: "",
+        password: "",
+        confirmPassword: "",
         phone: "",
         parish: "",
         address: "",
@@ -38,6 +41,7 @@ export function RegisterForm() {
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
     const [successMessage, setSuccessMessage] = useState("")
     const router = useRouter()
+    const { refreshUser } = useAuth()
 
     const handleInputChange = (field: keyof RegistrationFormData, value: string | boolean) => {
         setFormData(prev => ({ ...prev, [field]: value }))
@@ -59,6 +63,9 @@ export function RegisterForm() {
         if (!formData.firstName.trim()) return "First name is required"
         if (!formData.lastName.trim()) return "Last name is required"
         if (!formData.email.trim()) return "Email is required"
+        if (!formData.password) return "Password is required"
+        if (!formData.confirmPassword) return "Please confirm your password"
+        if (formData.password !== formData.confirmPassword) return "Passwords do not match"
         if (!formData.parish) return "Parish is required"
         if (!formData.terms) return "You must agree to the terms"
         if (!formData.smsAlerts && !formData.emailAlerts) return "Please select at least one alert method"
@@ -66,6 +73,12 @@ export function RegisterForm() {
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(formData.email)) return "Please enter a valid email address"
+
+        // Password validation
+        if (formData.password.length < 8) return "Password must be at least 8 characters"
+        if (!/[A-Z]/.test(formData.password)) return "Password must contain at least one uppercase letter"
+        if (!/[a-z]/.test(formData.password)) return "Password must contain at least one lowercase letter"
+        if (!/[0-9]/.test(formData.password)) return "Password must contain at least one number"
 
         // Phone validation (if provided)
         if (formData.phone.trim() && !/^\+?[\d\s\-\(\)]{10,20}$/.test(formData.phone.trim())) {
@@ -92,20 +105,39 @@ export function RegisterForm() {
             // Convert form data to API request format
             const apiRequest = formDataToApiRequest(formData)
             
+            console.log('🔄 Registering user...', apiRequest.email)
+            
             // Call the registration API
             const response = await authService.register(apiRequest)
+            
+            console.log('📥 Registration response:', response)
+            
+            // Store authentication token and user data
+            if (response && response.token && response.user) {
+                console.log('💾 Storing token and user data')
+                localStorage.setItem("auth-token", response.token)
+                localStorage.setItem("auth-user", JSON.stringify(response.user))
+                // Refresh auth context to update authentication state
+                refreshUser()
+                console.log('✅ Auth context refreshed')
+            } else {
+                console.error('❌ Unexpected response structure:', response)
+            }
             
             // Set success state with response message
             setSuccess(true)
             setSuccessMessage(
                 `Registration successful! You will now receive alerts for ${formData.parish}. ` +
-                `Please check your email (${formData.email}) for confirmation.`
+                `Redirecting to dashboard...`
             )
 
-            // Redirect after success
+            console.log('⏱️ Redirecting in 2 seconds...')
+            
+            // Redirect after success - use window.location for hard redirect
             setTimeout(() => {
-                router.push("/my-alerts")
-            }, 3000)
+                console.log('🔀 Redirecting to dashboard now')
+                window.location.href = "/dashboard"
+            }, 2000)
 
         } catch (err) {
             console.error("Registration error:", err)
@@ -216,6 +248,57 @@ export function RegisterForm() {
                         {fieldErrors.email}
                     </p>
                 )}
+            </div>
+
+            {/* Password Fields */}
+            <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="password" className="text-foreground">
+                        Password *
+                    </Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        placeholder="Create a strong password"
+                        className={`bg-background border-border text-foreground placeholder:text-muted-foreground ${
+                            fieldErrors.password ? 'border-red-500 focus:border-red-500' : ''
+                        }`}
+                        required
+                    />
+                    {fieldErrors.password && (
+                        <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {fieldErrors.password}
+                        </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                        Must be 8+ characters with uppercase, lowercase, and numbers
+                    </p>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-foreground">
+                        Confirm Password *
+                    </Label>
+                    <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                        placeholder="Confirm your password"
+                        className={`bg-background border-border text-foreground placeholder:text-muted-foreground ${
+                            fieldErrors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''
+                        }`}
+                        required
+                    />
+                    {fieldErrors.confirmPassword && (
+                        <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {fieldErrors.confirmPassword}
+                        </p>
+                    )}
+                </div>
             </div>
 
             <div className="space-y-2">

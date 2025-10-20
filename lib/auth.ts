@@ -23,54 +23,26 @@ interface LoginResponse {
 }
 
 // Real authentication functions that connect to the backend
-export async function signIn(email: string, password: string): Promise<{ user: User; token: string } | null> {
+export async function signIn(email: string, password: string, isAdmin = false): Promise<{ user: User; token: string } | null> {
+  console.log("signIn function called with email:", email, "isAdmin:", isAdmin);
   try {
-    const response = await apiClient.post<LoginResponse>("/auth/login", {
+    // Both admin and user login use the same endpoint
+    const endpoint = "/auth/login";
+    const response = await apiClient.post<LoginResponse>(endpoint, {
       email,
       password
     })
+
+    console.log("API response:", response);
 
     // Store in localStorage
     localStorage.setItem("auth-token", response.token)
     localStorage.setItem("auth-user", JSON.stringify(response.user))
 
+    console.log("Login successful - Token stored", response.token.substring(0, 20) + "...")
     return response
   } catch (error) {
-    // Fall back to mock credentials for demo purposes
-    if (email === "admin@jamalert.jm" && password === "admin123") {
-      const user: User = {
-        id: "1",
-        email: "admin@jamalert.jm",
-        name: "Admin User",
-        role: "admin",
-        createdAt: new Date().toISOString(),
-      }
-      const token = "mock-admin-token"
-
-      localStorage.setItem("auth-token", token)
-      localStorage.setItem("auth-user", JSON.stringify(user))
-
-      return { user, token }
-    }
-
-    if (email === "user@example.com" && password === "user123") {
-      const user: User = {
-        id: "2",
-        email: "user@example.com",
-        name: "John Smith",
-        role: "user",
-        parish: "St. Catherine",
-        phone: "+1 (876) 123-4567",
-        createdAt: new Date().toISOString(),
-      }
-      const token = "mock-user-token"
-
-      localStorage.setItem("auth-token", token)
-      localStorage.setItem("auth-user", JSON.stringify(user))
-
-      return { user, token }
-    }
-
+    console.error("API login failed:", error)
     return null
   }
 }

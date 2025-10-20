@@ -121,7 +121,7 @@ export class AlertService {
   /**
    * Get users by parishes with efficient querying
    */
-  async getUsersByParishes(parishes: Parish[], tx?: any): Promise<User[]> {
+  async getUsersByParishes(parishes: Parish[], tx?: any): Promise<any[]> {
     const client = tx || this.prisma;
 
     return await withRetry(async () => {
@@ -166,7 +166,7 @@ export class AlertService {
   /**
    * Get users by parishes with emergency-only filter
    */
-  async getEmergencyUsers(parishes: Parish[]): Promise<User[]> {
+  async getEmergencyUsers(parishes: Parish[]): Promise<any[]> {
     return await withRetry(async () => {
       return await this.prisma.user.findMany({
         where: {

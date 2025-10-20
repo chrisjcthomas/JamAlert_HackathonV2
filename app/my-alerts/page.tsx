@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,19 +9,74 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Bell, Settings, User, History, MessageSquare } from 'lucide-react';
+import { AlertCircle, Bell, Settings, User, History, MessageSquare, Shield, MapPin, LogOut, LayoutDashboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { UserProfileForm } from '@/components/forms/user-profile-form';
 import { AlertHistoryList } from '@/components/alerts/alert-history-list';
 import { AccessibilitySettings } from '@/components/settings/accessibility-settings';
 import { UnsubscribeDialog } from '@/components/dialogs/unsubscribe-dialog';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function MyAlertsPage() {
   const [activeTab, setActiveTab] = useState('profile');
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <nav className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" />
+            <span className="text-lg font-semibold text-foreground">JamAlert</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-3">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/my-alerts">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary bg-primary/10">
+                  <Bell className="h-4 w-4 mr-2" />
+                  My Alerts
+                </Button>
+              </Link>
+              <Link href="/report">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  Report
+                </Button>
+              </Link>
+              <Link href="/map">
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Map
+                </Button>
+              </Link>
+            </div>
+            <ThemeToggle />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              {user?.name}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-border hover:border-primary bg-transparent"
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">My Alert Profile</h1>
@@ -152,6 +208,7 @@ export default function MyAlertsPage() {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
       </div>
     </div>
   );

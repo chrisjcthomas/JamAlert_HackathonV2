@@ -14,10 +14,10 @@ import { useAuth } from "@/hooks/use-auth"
 
 interface LoginFormProps {
   redirectTo?: string
-  showDemoCredentials?: boolean
+  isAdminLogin?: boolean
 }
 
-export function LoginForm({ redirectTo = "/dashboard", showDemoCredentials = false }: LoginFormProps) {
+export function LoginForm({ redirectTo = "/dashboard", isAdminLogin = false }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -31,9 +31,10 @@ export function LoginForm({ redirectTo = "/dashboard", showDemoCredentials = fal
     setIsLoading(true)
 
     try {
-      const success = await signIn(email, password)
+      const success = await signIn(email, password, isAdminLogin)
       if (success) {
-        router.push(redirectTo)
+        // Use window.location for a hard redirect to ensure auth state is properly loaded
+        window.location.href = redirectTo
       } else {
         setError("Invalid email or password")
       }
@@ -52,17 +53,6 @@ export function LoginForm({ redirectTo = "/dashboard", showDemoCredentials = fal
         </Alert>
       )}
 
-      {showDemoCredentials && (
-        <Alert className="border-primary/50 bg-primary/5">
-          <AlertDescription className="text-sm">
-            <strong>Demo Credentials:</strong>
-            <br />
-            Admin: admin@jamalert.jm / admin123
-            <br />
-            User: user@example.com / user123
-          </AlertDescription>
-        </Alert>
-      )}
 
       <div className="space-y-2">
         <Label htmlFor="email" className="text-foreground">
@@ -125,6 +115,7 @@ export function LoginForm({ redirectTo = "/dashboard", showDemoCredentials = fal
           "Sign In"
         )}
       </Button>
+
     </form>
   )
 }

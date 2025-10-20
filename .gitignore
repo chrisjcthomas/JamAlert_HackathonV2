@@ -53,3 +53,5 @@ Thumbs.db
 # Package manager lock files (keep pnpm-lock.yaml only)
 package-lock.json
 backend/package-lock.json
+.vercel
+infrastructure/azure/parameters.json

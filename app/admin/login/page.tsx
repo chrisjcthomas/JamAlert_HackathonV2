@@ -22,30 +22,40 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("Login form submitted", { email, password: password ? '***' : 'empty' })
     setError("")
     setIsLoading(true)
 
     try {
+      console.log("Attempting sign in...")
       const success = await signIn(email, password)
+      console.log("Sign in result:", success)
+      
       if (success) {
-        router.push("/admin/dashboard")
+        console.log("Login successful, redirecting to dashboard")
+        // Wait a moment to ensure state is persisted
+        await new Promise(resolve => setTimeout(resolve, 300))
+        // Use window.location for more reliable redirect
+        window.location.href = "/admin/dashboard"
       } else {
+        console.error("Login failed: Invalid credentials")
         setError("Invalid email or password. Please try again.")
       }
     } catch (err) {
-      setError("An error occurred during login. Please try again.")
+      console.error("Login error:", err)
+      setError(`An error occurred during login: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Shield className="h-8 w-8 text-blue-600" />
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Shield className="h-8 w-8 text-primary" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
@@ -104,12 +114,6 @@ export default function AdminLoginPage() {
             </Button>
           </form>
           
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Demo Credentials:</p>
-            <p className="font-mono text-xs mt-1">
-              admin@jamalert.jm / admin123
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

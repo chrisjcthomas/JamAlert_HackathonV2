@@ -62,10 +62,10 @@ function SidebarContent({ className }: SidebarProps) {
     <div className={cn("flex h-full flex-col", className)}>
       <div className="flex h-16 items-center border-b px-6">
         <div className="flex items-center space-x-2">
-          <Shield className="h-8 w-8 text-blue-600" />
+          <Shield className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-lg font-semibold">JamAlert</h1>
-            <p className="text-xs text-gray-500">Admin Panel</p>
+            <h1 className="text-lg font-semibold text-foreground">JamAlert</h1>
+            <p className="text-xs text-muted-foreground">Admin Panel</p>
           </div>
         </div>
       </div>
@@ -81,8 +81,8 @@ function SidebarContent({ className }: SidebarProps) {
                 className={cn(
                   "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -119,7 +119,7 @@ export function AdminSidebar() {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex grow flex-col overflow-y-auto border-r bg-white">
+        <div className="flex grow flex-col overflow-y-auto border-r border-border bg-card">
           <SidebarContent />
         </div>
       </div>

@@ -64,6 +64,7 @@ export interface UserRegistrationRequest {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
   phone?: string;
   parish: Parish;
   address?: string;
@@ -85,6 +86,8 @@ export interface RegistrationFormData {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
+  confirmPassword: string;
   phone: string;
   parish: string; // Display name format
   address: string;
@@ -106,6 +109,7 @@ export function formDataToApiRequest(formData: RegistrationFormData): UserRegist
     firstName: formData.firstName.trim(),
     lastName: formData.lastName.trim(),
     email: formData.email.trim().toLowerCase(),
+    password: formData.password,
     phone: formData.phone.trim() || undefined,
     parish,
     address: formData.address.trim() || undefined,
