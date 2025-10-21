@@ -2,10 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Import Prisma client from parent directory
-const { PrismaClient } = require('../node_modules/@prisma/client');
-
-const prisma = new PrismaClient();
+// In-memory database for development
+const users = new Map();
+const adminUsers = new Map();
 
 // JWT secret - in production, use environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -16,10 +15,8 @@ const JWT_EXPIRY = '7d'; // 7 days
  */
 async function adminLogin(email, password) {
   try {
-    // Find admin user
-    const admin = await prisma.adminUser.findUnique({
-      where: { email },
-    });
+    // Find admin user in memory
+    const admin = Array.from(adminUsers.values()).find(u => u.email === email);
 
     if (!admin || !admin.isActive) {
       return { success: false, error: 'Invalid credentials' };
@@ -32,10 +29,7 @@ async function adminLogin(email, password) {
     }
 
     // Update last login
-    await prisma.adminUser.update({
-      where: { id: admin.id },
-      data: { lastLogin: new Date() },
-    });
+    admin.lastLogin = new Date();
 
     // Generate JWT token
     const token = jwt.sign(
@@ -74,7 +68,7 @@ async function adminLogin(email, password) {
  */
 async function registerUser(userData) {
   try {
-    const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly } = userData;
+    const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = userData;
 
     // Validate password
     if (!password || password.length < 8) {
@@ -82,10 +76,7 @@ async function registerUser(userData) {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
+    const existingUser = Array.from(users.values()).find(u => u.email === email);
     if (existingUser) {
       return { success: false, error: 'Email already registered' };
     }
@@ -97,20 +88,25 @@ async function registerUser(userData) {
     const parishEnum = parish.toUpperCase().replace(/ /g, '_').replace(/\./g, '');
 
     // Create new user
-    const user = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        passwordHash,
-        phone: phone || null,
-        parish: parishEnum,
-        address: userData.address || null,
-        smsAlerts: smsAlerts || false,
-        emailAlerts: emailAlerts !== undefined ? emailAlerts : true,
-        emergencyOnly: emergencyOnly || false,
-      },
-    });
+    const userId = require('uuid').v4();
+    const user = {
+      id: userId,
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      phone: phone || null,
+      parish: parishEnum,
+      address: address || null,
+      smsAlerts: smsAlerts || false,
+      emailAlerts: emailAlerts !== undefined ? emailAlerts : true,
+      emergencyOnly: emergencyOnly || false,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    users.set(userId, user);
 
     // Generate JWT token for immediate login
     const token = jwt.sign(
@@ -150,11 +146,9 @@ async function registerUser(userData) {
  */
 async function getUserById(userId) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId, isActive: true },
-    });
+    const user = users.get(userId);
 
-    if (!user) {
+    if (!user || !user.isActive) {
       return null;
     }
 
@@ -178,11 +172,9 @@ async function getUserById(userId) {
  */
 async function getAdminById(adminId) {
   try {
-    const admin = await prisma.adminUser.findUnique({
-      where: { id: adminId, isActive: true },
-    });
+    const admin = adminUsers.get(adminId);
 
-    if (!admin) {
+    if (!admin || !admin.isActive) {
       return null;
     }
 
@@ -217,10 +209,8 @@ function verifyToken(token) {
  */
 async function userLogin(email, password) {
   try {
-    // Find user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Find user in memory
+    const user = Array.from(users.values()).find(u => u.email === email);
 
     if (!user || !user.isActive) {
       return { success: false, error: 'Invalid credentials' };

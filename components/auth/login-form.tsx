@@ -31,14 +31,19 @@ export function LoginForm({ redirectTo = "/dashboard", isAdminLogin = false }: L
     setIsLoading(true)
 
     try {
+      console.log("🔐 Login form submitting for:", email)
       const success = await signIn(email, password, isAdminLogin)
       if (success) {
-        // Use window.location for a hard redirect to ensure auth state is properly loaded
-        window.location.href = redirectTo
+        console.log("✅ Login successful, redirecting to:", redirectTo)
+        // Use router.push for client-side navigation which works better with Next.js
+        // The middleware will check cookies and allow access
+        router.push(redirectTo)
       } else {
+        console.log("❌ Login failed - invalid credentials")
         setError("Invalid email or password")
       }
     } catch (err) {
+      console.error("❌ Login error:", err)
       setError("An error occurred. Please try again.")
     } finally {
       setIsLoading(false)

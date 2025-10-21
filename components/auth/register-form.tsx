@@ -104,26 +104,38 @@ export function RegisterForm() {
         try {
             // Convert form data to API request format
             const apiRequest = formDataToApiRequest(formData)
-            
+
             console.log('🔄 Registering user...', apiRequest.email)
-            
+
             // Call the registration API
             const response = await authService.register(apiRequest)
-            
+
             console.log('📥 Registration response:', response)
-            
+
             // Store authentication token and user data
             if (response && response.token && response.user) {
                 console.log('💾 Storing token and user data')
                 localStorage.setItem("auth-token", response.token)
                 localStorage.setItem("auth-user", JSON.stringify(response.user))
+
+                // Also set cookies for middleware
+                if (typeof document !== 'undefined') {
+                    const expiryDate = new Date();
+                    expiryDate.setTime(expiryDate.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+                    const expires = `expires=${expiryDate.toUTCString()}`;
+
+                    document.cookie = `auth-token=${response.token}; ${expires}; path=/; SameSite=Lax`
+                    document.cookie = `auth-user=${encodeURIComponent(JSON.stringify(response.user))}; ${expires}; path=/; SameSite=Lax`
+                    console.log('🍪 Cookies set for registration')
+                }
+
                 // Refresh auth context to update authentication state
                 refreshUser()
                 console.log('✅ Auth context refreshed')
             } else {
                 console.error('❌ Unexpected response structure:', response)
             }
-            
+
             // Set success state with response message
             setSuccess(true)
             setSuccessMessage(
@@ -131,13 +143,13 @@ export function RegisterForm() {
                 `Redirecting to dashboard...`
             )
 
-            console.log('⏱️ Redirecting in 2 seconds...')
-            
-            // Redirect after success - use window.location for hard redirect
+            console.log('⏱️ Redirecting in 1.5 seconds...')
+
+            // Redirect after success - use router.push for client-side navigation
             setTimeout(() => {
                 console.log('🔀 Redirecting to dashboard now')
-                window.location.href = "/dashboard"
-            }, 2000)
+                router.push("/dashboard")
+            }, 1500)
 
         } catch (err) {
             console.error("Registration error:", err)

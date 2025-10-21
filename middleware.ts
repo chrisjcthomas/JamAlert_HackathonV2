@@ -7,7 +7,7 @@ const adminRoutes = ["/admin"]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
+
   // Skip auth checks for login pages
   if (pathname === "/login" || pathname === "/admin/login" || pathname === "/register") {
     return NextResponse.next()
@@ -18,26 +18,31 @@ export function middleware(request: NextRequest) {
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route))
 
   if (isProtectedRoute) {
-    // Get auth token from cookies or headers
+    // Get auth token from cookies first, then from headers
     const authToken =
       request.cookies.get("auth-token")?.value || request.headers.get("authorization")?.replace("Bearer ", "")
 
     // If no token, redirect to appropriate login page
     if (!authToken) {
+      console.log(`🔐 Middleware: No auth token for ${pathname}, redirecting to login`)
       const loginUrl = isAdminRoute ? "/admin/login" : "/login"
       return NextResponse.redirect(new URL(loginUrl, request.url))
     }
+
+    console.log(`✅ Middleware: Auth token found for ${pathname}`)
 
     // For admin routes, check if user has admin role
     if (isAdminRoute) {
       const userStr = request.cookies.get("auth-user")?.value
       if (userStr) {
         try {
-          const user = JSON.parse(userStr)
+          const user = JSON.parse(decodeURIComponent(userStr))
           if (user.role !== "admin") {
+            console.log(`❌ Middleware: User is not admin, redirecting to unauthorized`)
             return NextResponse.redirect(new URL("/unauthorized", request.url))
           }
-        } catch {
+        } catch (e) {
+          console.log(`❌ Middleware: Failed to parse user cookie, redirecting to admin login`)
           return NextResponse.redirect(new URL("/admin/login", request.url))
         }
       }
