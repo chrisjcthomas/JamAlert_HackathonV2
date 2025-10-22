@@ -1,5 +1,6 @@
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, ArrowLeft, MapPin, Bell, Users } from "lucide-react"
+import { ArrowLeft, MapPin, Bell, Users } from "lucide-react"
 import Link from "next/link"
 import { RegisterForm } from "@/components/auth/register-form"
 
@@ -17,7 +18,7 @@ export default function RegisterPage() {
             Back to Home
           </Link>
           <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
+            <Image src="/JamAlert.jpg" alt="JamAlert Logo" width={32} height={32} className="rounded" />
             <span className="text-lg font-semibold text-foreground">JamAlert</span>
           </div>
         </div>

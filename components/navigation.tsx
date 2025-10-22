@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Shield, Menu, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { useState } from "react"
 
 const publicRoutes = [
@@ -27,7 +28,7 @@ export function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            <Shield className="h-6 w-6 text-primary" />
+            <Image src="/JamAlert.jpg" alt="JamAlert Logo" width={40} height={40} className="rounded" />
             <span className="text-xl font-bold">JamAlert</span>
           </Link>
 

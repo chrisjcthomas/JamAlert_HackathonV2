@@ -2,15 +2,15 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Shield, Menu, Bell, MapPin, AlertTriangle, HelpCircle, User, LogOut } from "lucide-react"
+import { Menu, Bell, MapPin, AlertTriangle, HelpCircle, User, LogOut } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const publicNavItems = [
-  { href: "/", label: "Home", icon: Shield },
   { href: "/map", label: "Live Map", icon: MapPin },
   { href: "/report", label: "Report", icon: AlertTriangle },
   { href: "/help", label: "Help", icon: HelpCircle },
@@ -63,7 +63,7 @@ export function MainNav() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Shield className="h-6 w-6 text-primary" />
+          <Image src="/JamAlert.jpg" alt="JamAlert Logo" width={40} height={40} className="rounded" />
           <span className="text-lg font-semibold text-foreground">JamAlert</span>
         </Link>
 

@@ -1,15 +1,16 @@
 "use client"
 
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MainNav } from "@/components/navigation/main-nav"
 import { AlertCard } from "@/components/ui/alert-card"
 import { AlertMap } from "@/components/alert-map"
-import { Shield, MapPin, Bell, Users, AlertTriangle, ArrowRight, Phone } from "lucide-react"
+import { MapPin, Bell, Users, AlertTriangle, ArrowRight, Phone } from "lucide-react"
 import Link from "next/link"
 
-// Mock recent alerts data
+// Mock recent alerts data - ONLY Flash Floods and Power Outages
 const recentAlerts = [
   {
     id: 1,
@@ -23,21 +24,21 @@ const recentAlerts = [
   },
   {
     id: 2,
-    type: "weather",
+    type: "power",
     severity: "medium",
-    title: "Strong Wind Advisory",
-    description: "Gusty winds expected in coastal areas",
+    title: "Power Outage Alert",
+    description: "Scheduled power outage affecting multiple areas",
     location: "St. James",
     time: "5 hours ago",
     status: "resolved",
   },
   {
     id: 3,
-    type: "accident",
+    type: "flood",
     severity: "medium",
-    title: "Traffic Incident",
-    description: "Multi-vehicle accident on A1 Highway",
-    location: "St. Catherine",
+    title: "Flood Advisory",
+    description: "Rising water levels in low-lying areas",
+    location: "Kingston",
     time: "1 day ago",
     status: "resolved",
   },
@@ -293,7 +294,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Shield className="h-6 w-6 text-primary" />
+                <Image src="/JamAlert.jpg" alt="JamAlert Logo" width={32} height={32} className="rounded" />
                 <span className="text-lg font-semibold text-foreground">JamAlert</span>
               </div>
               <p className="text-sm text-muted-foreground">

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,7 +15,6 @@ import {
   Bell,
   FileText,
   Menu,
-  Shield,
   Activity,
 } from "lucide-react"
 
@@ -62,7 +62,7 @@ function SidebarContent({ className }: SidebarProps) {
     <div className={cn("flex h-full flex-col", className)}>
       <div className="flex h-16 items-center border-b px-6">
         <div className="flex items-center space-x-2">
-          <Shield className="h-8 w-8 text-primary" />
+          <Image src="/JamAlert.jpg" alt="JamAlert Logo" width={40} height={40} className="rounded" />
           <div>
             <h1 className="text-lg font-semibold text-foreground">JamAlert</h1>
             <p className="text-xs text-muted-foreground">Admin Panel</p>
