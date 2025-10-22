@@ -71,15 +71,8 @@ interface IncidentReport {
 }
 
 const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
-  [IncidentType.FLOOD]: "Flood",
-  [IncidentType.ACCIDENT]: "Accident",
-  [IncidentType.FIRE]: "Fire",
-  [IncidentType.POWER]: "Power Outage",
-  [IncidentType.WEATHER]: "Weather",
-  [IncidentType.CRIME]: "Crime",
-  [IncidentType.MEDICAL]: "Medical",
-  [IncidentType.INFRASTRUCTURE]: "Infrastructure",
-  [IncidentType.OTHER]: "Other"
+  [IncidentType.FLOOD]: "Flash Flood",
+  [IncidentType.POWER]: "Power Outage"
 }
 
 export default function IncidentReportsPage() {

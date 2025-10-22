@@ -63,18 +63,11 @@ export function AlertMap({
     { value: Parish.ST_CATHERINE, label: 'St. Catherine' },
   ]
 
-  // Incident type options
+  // Incident type options - ONLY Flash Floods and Power Outages
   const incidentTypeOptions = [
     { value: 'all', label: 'All Types' },
-    { value: IncidentType.FLOOD, label: 'Flood' },
-    { value: IncidentType.WEATHER, label: 'Weather' },
-    { value: IncidentType.ACCIDENT, label: 'Accident' },
-    { value: IncidentType.FIRE, label: 'Fire' },
+    { value: IncidentType.FLOOD, label: 'Flash Flood' },
     { value: IncidentType.POWER, label: 'Power Outage' },
-    { value: IncidentType.INFRASTRUCTURE, label: 'Infrastructure' },
-    { value: IncidentType.MEDICAL, label: 'Medical' },
-    { value: IncidentType.CRIME, label: 'Crime' },
-    { value: IncidentType.OTHER, label: 'Other' },
   ]
 
   // Severity options

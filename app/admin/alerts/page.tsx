@@ -66,7 +66,7 @@ interface AlertRecord {
 }
 
 interface NewAlert {
-  type: "flood" | "weather" | "emergency" | "all_clear"
+  type: "flood" | "power"
   severity: Severity
   title: string
   message: string
@@ -75,10 +75,8 @@ interface NewAlert {
 }
 
 const ALERT_TYPE_LABELS = {
-  flood: "Flood Alert",
-  weather: "Weather Alert", 
-  emergency: "Emergency Alert",
-  all_clear: "All Clear"
+  flood: "Flash Flood Alert",
+  power: "Power Outage Alert"
 }
 
 export default function AlertManagementPage() {

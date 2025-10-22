@@ -221,9 +221,7 @@ enum Parish {
 
 enum AlertType {
   FLOOD      @map("flood")
-  WEATHER    @map("weather")
-  EMERGENCY  @map("emergency")
-  ALL_CLEAR  @map("all_clear")
+  POWER      @map("power")
 }
 
 enum Severity {
@@ -234,14 +232,7 @@ enum Severity {
 
 enum IncidentType {
   FLOOD          @map("flood")
-  ACCIDENT       @map("accident")
-  FIRE           @map("fire")
   POWER          @map("power")
-  WEATHER        @map("weather")
-  CRIME          @map("crime")
-  MEDICAL        @map("medical")
-  INFRASTRUCTURE @map("infrastructure")
-  OTHER          @map("other")
 }
 
 enum ReportStatus {

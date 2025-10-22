@@ -26,15 +26,8 @@ import {
 import { getErrorMessage, getValidationErrors } from "@/lib/api-client"
 
 const incidentTypes = [
-  { value: "flood", label: "Flooding", icon: "🌊" },
-  { value: "accident", label: "Traffic Accident", icon: "🚗" },
-  { value: "fire", label: "Fire", icon: "🔥" },
+  { value: "flood", label: "Flash Flood", icon: "🌊" },
   { value: "power", label: "Power Outage", icon: "⚡" },
-  { value: "weather", label: "Severe Weather", icon: "🌪️" },
-  { value: "crime", label: "Security Incident", icon: "🚨" },
-  { value: "medical", label: "Medical Emergency", icon: "🏥" },
-  { value: "infrastructure", label: "Infrastructure", icon: "🏗️" },
-  { value: "other", label: "Other", icon: "📍" },
 ]
 
 const severityLevels = [

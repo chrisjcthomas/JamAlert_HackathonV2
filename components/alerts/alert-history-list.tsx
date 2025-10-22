@@ -197,10 +197,8 @@ export function AlertHistoryList() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All types</SelectItem>
-                  <SelectItem value="flood">Flood</SelectItem>
-                  <SelectItem value="weather">Weather</SelectItem>
-                  <SelectItem value="emergency">Emergency</SelectItem>
-                  <SelectItem value="all_clear">All Clear</SelectItem>
+                  <SelectItem value="flood">Flash Flood</SelectItem>
+                  <SelectItem value="power">Power Outage</SelectItem>
                 </SelectContent>
               </Select>
             </div>

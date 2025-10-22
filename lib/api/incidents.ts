@@ -5,17 +5,10 @@
 import { apiClient } from '../api-client';
 import { Parish } from '../types';
 
-// Incident types matching backend
+// Incident types matching backend - ONLY Flash Floods and Power Outages
 export enum IncidentType {
   FLOOD = 'flood',
-  ACCIDENT = 'accident',
-  FIRE = 'fire',
   POWER = 'power',
-  WEATHER = 'weather',
-  CRIME = 'crime',
-  MEDICAL = 'medical',
-  INFRASTRUCTURE = 'infrastructure',
-  OTHER = 'other',
 }
 
 // Severity levels matching backend

@@ -93,16 +93,8 @@ export const enTranslations: TranslationNamespaces = {
     push: 'Push Notification',
     webhook: 'Webhook',
     types: {
-      flood: 'Flood',
-      hurricane: 'Hurricane',
-      earthquake: 'Earthquake',
-      fire: 'Fire',
-      accident: 'Accident',
-      weather: 'Weather',
-      emergency: 'Emergency',
-      health: 'Health',
-      security: 'Security',
-      other: 'Other'
+      flood: 'Flash Flood',
+      power: 'Power Outage'
     },
     severities: {
       low: 'Low',
