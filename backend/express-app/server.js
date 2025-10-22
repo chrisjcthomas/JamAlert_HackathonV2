@@ -1,8 +1,13 @@
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const authService = require('./auth-service');
+const weatherRoutes = require('./routes/weather');
+const weatherMonitor = require('./services/weather-monitor');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -284,23 +289,124 @@ app.post('/api/alerts/retry', (req, res) => {
 // INCIDENT ENDPOINTS
 // ============================================================================
 
+// In-memory storage for incident reports
+const incidentReports = new Map();
+let incidentIdCounter = 1;
+
 // Report incident endpoint
 app.post('/api/incidents/report', (req, res) => {
-  console.log('Incident report attempt:', req.body?.type);
-  res.status(400).json({
-    success: false,
-    error: 'Incident reporting service temporarily unavailable',
-    message: 'Please try again later'
-  });
+  try {
+    const {
+      incidentType,
+      severity,
+      parish,
+      community,
+      address,
+      description,
+      incidentDate,
+      incidentTime,
+      reporterName,
+      reporterPhone,
+      isAnonymous,
+      receiveUpdates
+    } = req.body;
+
+    // Validate required fields
+    if (!incidentType || !severity || !parish || !description) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        message: 'Incident type, severity, parish, and description are required'
+      });
+    }
+
+    // Create incident report
+    const reportId = `INC-${Date.now()}-${incidentIdCounter++}`;
+    const report = {
+      id: reportId,
+      incidentType,
+      severity,
+      parish,
+      community: community || null,
+      address: address || null,
+      description,
+      incidentDate: incidentDate ? new Date(incidentDate) : new Date(),
+      incidentTime: incidentTime || null,
+      reporterName: isAnonymous ? 'Anonymous' : (reporterName || 'Anonymous'),
+      reporterPhone: isAnonymous ? null : (reporterPhone || null),
+      isAnonymous: isAnonymous || false,
+      receiveUpdates: isAnonymous ? false : (receiveUpdates || false),
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // Store the report
+    incidentReports.set(reportId, report);
+
+    console.log(`✅ Incident report created: ${reportId} - ${incidentType} in ${parish}`);
+
+    // Return success response
+    res.status(201).json({
+      success: true,
+      data: {
+        id: report.id,
+        status: report.status,
+        parish: report.parish,
+        incidentType: report.incidentType,
+        severity: report.severity,
+        createdAt: report.createdAt
+      },
+      message: 'Incident report submitted successfully. It will be reviewed by our team.'
+    });
+  } catch (error) {
+    console.error('❌ Error creating incident report:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to submit incident report. Please try again.'
+    });
+  }
 });
 
 // List incidents endpoint
 app.get('/api/incidents/list', (req, res) => {
-  res.json({
-    success: true,
-    data: [],
-    message: 'Incident list service operational but no incidents found'
-  });
+  try {
+    const { parish, status, limit = 50 } = req.query;
+
+    let incidents = Array.from(incidentReports.values());
+
+    // Filter by parish if provided
+    if (parish) {
+      incidents = incidents.filter(inc => inc.parish.toLowerCase() === parish.toLowerCase());
+    }
+
+    // Filter by status if provided
+    if (status) {
+      incidents = incidents.filter(inc => inc.status === status);
+    }
+
+    // Sort by creation date (newest first)
+    incidents.sort((a, b) => b.createdAt - a.createdAt);
+
+    // Limit results
+    incidents = incidents.slice(0, parseInt(limit));
+
+    res.json({
+      success: true,
+      data: incidents,
+      count: incidents.length,
+      total: incidentReports.size,
+      message: `Found ${incidents.length} incident report(s)`
+    });
+  } catch (error) {
+    console.error('❌ Error listing incidents:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to retrieve incident reports'
+    });
+  }
 });
 
 // Map data endpoint
@@ -431,29 +537,399 @@ app.delete('/api/users/:userId/data-deletion', (req, res) => {
 // WEATHER ENDPOINTS
 // ============================================================================
 
-// Weather monitor endpoint
-app.get('/api/weather/monitor', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      parishes: [],
-      lastUpdate: new Date().toISOString(),
-      status: 'monitoring'
-    },
-    message: 'Weather monitoring service operational'
-  });
+// Mount weather routes
+app.use('/api/weather', weatherRoutes);
+
+// Start monitoring for a user
+app.post('/api/weather/monitor/start', (req, res) => {
+  const { userId, location, thresholds } = req.body;
+
+  if (!userId || !location) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      message: 'userId and location are required'
+    });
+  }
+
+  try {
+    const monitoring = weatherMonitor.startUserMonitoring(userId, location, thresholds);
+    res.json({
+      success: true,
+      data: monitoring,
+      message: `Started monitoring for ${location}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to start monitoring',
+      message: error.message
+    });
+  }
 });
 
-// Weather thresholds endpoint
-app.get('/api/weather/thresholds', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      thresholds: {},
-      parishes: []
-    },
-    message: 'Weather thresholds service operational'
-  });
+// Stop monitoring for a user
+app.post('/api/weather/monitor/stop', (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      message: 'userId is required'
+    });
+  }
+
+  try {
+    weatherMonitor.stopUserMonitoring(userId);
+    res.json({
+      success: true,
+      message: `Stopped monitoring for ${userId}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to stop monitoring',
+      message: error.message
+    });
+  }
+});
+
+// Get monitoring status
+app.get('/api/weather/monitor/status/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const status = weatherMonitor.getMonitoringStatus(userId);
+    if (!status) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not monitoring',
+        message: `No monitoring session found for ${userId}`
+      });
+    }
+
+    res.json({
+      success: true,
+      data: status,
+      message: 'Monitoring status retrieved'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get monitoring status',
+      message: error.message
+    });
+  }
+});
+
+// Get alert history
+app.get('/api/weather/alerts/:userId', (req, res) => {
+  const { userId } = req.params;
+  const limit = parseInt(req.query.limit) || 50;
+
+  try {
+    const alerts = weatherMonitor.getAlertHistory(userId, limit);
+    res.json({
+      success: true,
+      data: alerts,
+      count: alerts.length,
+      message: 'Alert history retrieved'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get alert history',
+      message: error.message
+    });
+  }
+});
+
+// Clear alert history
+app.delete('/api/weather/alerts/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    weatherMonitor.clearAlertHistory(userId);
+    res.json({
+      success: true,
+      message: 'Alert history cleared'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear alert history',
+      message: error.message
+    });
+  }
+});
+
+// Get all monitoring sessions (admin)
+app.get('/api/weather/monitor/sessions/all', (req, res) => {
+  try {
+    const sessions = weatherMonitor.getAllMonitoringSessions();
+    res.json({
+      success: true,
+      data: sessions,
+      count: sessions.length,
+      message: 'All monitoring sessions retrieved'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get monitoring sessions',
+      message: error.message
+    });
+  }
+});
+
+// ============================================================================
+// RAINFALL ACCUMULATION ENDPOINTS (Phase 1)
+// ============================================================================
+
+// Get rainfall accumulation data for a location
+app.get('/api/weather/rainfall/:location', (req, res) => {
+  const { location } = req.params;
+
+  try {
+    const rainfallData = weatherMonitor.getRainfallData(location);
+    res.json({
+      success: true,
+      data: rainfallData,
+      message: `Rainfall data retrieved for ${location}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get rainfall data',
+      message: error.message
+    });
+  }
+});
+
+// Record a flooding incident report
+app.post('/api/weather/incidents/report', (req, res) => {
+  const { location, type, description, userId } = req.body;
+
+  if (!location || !type || !description) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      message: 'location, type, and description are required'
+    });
+  }
+
+  try {
+    const report = weatherMonitor.recordIncidentReport(location, type, description, userId || 'anonymous');
+    res.json({
+      success: true,
+      data: report,
+      message: `Incident report recorded for ${location}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record incident report',
+      message: error.message
+    });
+  }
+});
+
+// Get recent flooding reports for a location
+app.get('/api/weather/incidents/flooding/:location', (req, res) => {
+  const { location } = req.params;
+  const { timeWindow = 30 } = req.query;
+
+  try {
+    const reports = weatherMonitor.findRecentFloodingReports(location, parseInt(timeWindow));
+    res.json({
+      success: true,
+      data: reports,
+      message: `Flooding reports retrieved for ${location}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get flooding reports',
+      message: error.message
+    });
+  }
+});
+
+// ============================================================================
+// ADMIN ENDPOINTS (Phase 1)
+// ============================================================================
+
+// Get current rainfall thresholds
+app.get('/api/admin/weather/thresholds', (req, res) => {
+  try {
+    const thresholds = {
+      rainfall1h: process.env.RAINFALL_THRESHOLD_1H || 50,
+      rainfall3h: process.env.RAINFALL_THRESHOLD_3H || 75,
+      rainfall12h: process.env.RAINFALL_THRESHOLD_12H || 150,
+      rainfall24h: process.env.RAINFALL_THRESHOLD_24H || 200
+    };
+    res.json({
+      success: true,
+      data: thresholds,
+      message: 'Rainfall thresholds retrieved'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get thresholds',
+      message: error.message
+    });
+  }
+});
+
+// Update rainfall thresholds (POST)
+app.post('/api/admin/weather/thresholds', (req, res) => {
+  const { rainfallThreshold1h, rainfallThreshold3h, rainfallThreshold12h, rainfallThreshold24h } = req.body;
+
+  // Validation
+  if (!rainfallThreshold1h || !rainfallThreshold3h || !rainfallThreshold12h || !rainfallThreshold24h) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      message: 'All threshold values are required'
+    });
+  }
+
+  // Validate numeric values
+  const values = [rainfallThreshold1h, rainfallThreshold3h, rainfallThreshold12h, rainfallThreshold24h];
+  if (values.some(v => typeof v !== 'number' || v < 10 || v > 500)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid threshold values',
+      message: 'All thresholds must be numbers between 10 and 500'
+    });
+  }
+
+  // Validate logical progression
+  if (rainfallThreshold1h >= rainfallThreshold3h ||
+      rainfallThreshold3h >= rainfallThreshold12h ||
+      rainfallThreshold12h >= rainfallThreshold24h) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid threshold progression',
+      message: 'Thresholds must follow progression: 1h < 3h < 12h < 24h'
+    });
+  }
+
+  try {
+    // Update thresholds in weather monitor
+    const updated = weatherMonitor.updateThresholds({
+      rainfallThreshold1h,
+      rainfallThreshold3h,
+      rainfallThreshold12h,
+      rainfallThreshold24h
+    });
+
+    // Log the change for audit trail
+    console.log(`🔧 Rainfall thresholds updated:`, {
+      rainfallThreshold1h,
+      rainfallThreshold3h,
+      rainfallThreshold12h,
+      rainfallThreshold24h,
+      timestamp: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+      message: 'Rainfall thresholds updated successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update thresholds',
+      message: error.message
+    });
+  }
+});
+
+// Get predictive alerts feature status
+app.get('/api/admin/weather/feature-status', (req, res) => {
+  try {
+    const status = {
+      usePredictiveAlerts: process.env.USE_PREDICTIVE_ALERTS === 'true',
+      shadowModeLogging: process.env.SHADOW_MODE_LOGGING === 'true',
+      rainfallTrackingEnabled: true,
+      incidentVerificationEnabled: true
+    };
+    res.json({
+      success: true,
+      data: status,
+      message: 'Feature status retrieved'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get feature status',
+      message: error.message
+    });
+  }
+});
+
+// ============================================================================
+// ALERT VERIFICATION ENDPOINTS (Phase 2)
+// ============================================================================
+
+// Escalate alert based on community verification
+app.post('/api/weather/alerts/escalate', (req, res) => {
+  const { alert, location, timeWindow = 30 } = req.body;
+
+  if (!alert || !location) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      message: 'alert and location are required'
+    });
+  }
+
+  try {
+    const escalatedAlert = weatherMonitor.escalateAlertWithVerification(alert, location, timeWindow);
+    res.json({
+      success: true,
+      data: escalatedAlert,
+      message: `Alert escalation evaluated for ${location}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to escalate alert',
+      message: error.message
+    });
+  }
+});
+
+// De-escalate alert if verification expired
+app.post('/api/weather/alerts/deescalate', (req, res) => {
+  const { alert, location, timeWindow = 60 } = req.body;
+
+  if (!alert || !location) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      message: 'alert and location are required'
+    });
+  }
+
+  try {
+    const deescalatedAlert = weatherMonitor.deescalateAlert(alert, location, timeWindow);
+    res.json({
+      success: true,
+      data: deescalatedAlert,
+      message: `Alert de-escalation evaluated for ${location}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to de-escalate alert',
+      message: error.message
+    });
+  }
 });
 
 // ============================================================================
