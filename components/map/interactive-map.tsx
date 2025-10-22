@@ -316,19 +316,14 @@ export default function InteractiveMap({ incidents, loading, height = "400px" }:
   function getIncidentIcon(type: IncidentType): string {
     const icons = {
       [IncidentType.FLOOD]: '🌊',
-      [IncidentType.WEATHER]: '⛈️',
-      [IncidentType.FIRE]: '🔥',
-      [IncidentType.ACCIDENT]: '🚗',
       [IncidentType.POWER]: '⚡',
-      [IncidentType.INFRASTRUCTURE]: '🏗️',
-      [IncidentType.MEDICAL]: '🏥',
-      [IncidentType.CRIME]: '🚨',
-      [IncidentType.OTHER]: '❗',
     }
     return icons[type] || '❗'
   }
 
   function formatIncidentType(type: IncidentType): string {
+    // Add null/undefined check to prevent errors
+    if (!type) return 'Unknown'
     return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')
   }
 

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-// Mock incident data
+// Mock incident data - Only Flash Floods and Power Outages
 const mockIncidents = [
   {
     id: 1,
@@ -19,9 +19,9 @@ const mockIncidents = [
     id: 2,
     lat: 18.1096,
     lng: -77.2975,
-    type: "accident",
+    type: "flood",
     severity: "medium",
-    description: "Traffic accident on A1 Highway",
+    description: "Flooding reported on A1 Highway near Bog Walk",
     time: "45 minutes ago",
   },
   {
@@ -37,9 +37,9 @@ const mockIncidents = [
     id: 4,
     lat: 18.4671,
     lng: -77.9218,
-    type: "weather",
+    type: "power",
     severity: "medium",
-    description: "Strong winds in Montego Bay",
+    description: "Power outage affecting Montego Bay area",
     time: "30 minutes ago",
   },
 ]
