@@ -1,7 +1,10 @@
 /**
  * API Client utility for JamAlert frontend
  * Provides consistent error handling and request/response processing
+ * Supports multiple backend providers (Azure, Railway) with automatic failover
  */
+
+import { backendConfig, type BackendProvider } from './backend-config';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -35,13 +38,26 @@ export class NetworkError extends Error {
 }
 
 class ApiClient {
-  private baseUrl: string;
   private isDemoMode: boolean;
+  private requestAttempts: Map<string, number> = new Map();
+  private readonly MAX_RETRY_ATTEMPTS = 2;
 
   constructor() {
-    // Use environment variable or default to local development
-    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api';
     this.isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  }
+
+  /**
+   * Get the current base URL from backend configuration
+   */
+  private getBaseUrl(): string {
+    return backendConfig.getBaseUrl();
+  }
+
+  /**
+   * Get the fallback URL from backend configuration
+   */
+  private getFallbackUrl(): string | undefined {
+    return backendConfig.getFallbackUrl();
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
@@ -194,32 +210,61 @@ class ApiClient {
       }
     }
 
-    const url = `${this.baseUrl}${endpoint}`;
-
-    // Add auth token to headers if available
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
-    const defaultHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-    
-    if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
-    }
+    const requestKey = `${options.method || 'GET'}:${endpoint}`;
+    const attempts = this.requestAttempts.get(requestKey) || 0;
 
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers: defaultHeaders,
-      });
+      // Try primary backend URL
+      const primaryUrl = `${this.getBaseUrl()}${endpoint}`;
+      const response = await this.fetchWithAuth(primaryUrl, options);
+
+      // Mark provider as healthy on successful request
+      const config = backendConfig.getConfig();
+      if (config.provider !== 'auto') {
+        backendConfig.markProviderHealthy(config.provider);
+      }
+
+      // Reset retry attempts on success
+      this.requestAttempts.delete(requestKey);
 
       return await this.handleResponse<T>(response);
     } catch (error) {
+      // Handle API errors (don't retry)
       if (error instanceof ApiError) {
         throw error;
       }
 
-      if (error instanceof TypeError && error.message.includes('fetch')) {
+      // Handle network errors with retry logic
+      if (error instanceof NetworkError || error instanceof TypeError) {
+        // Try fallback URL if available and we haven't exceeded retry attempts
+        const fallbackUrl = this.getFallbackUrl();
+
+        if (fallbackUrl && attempts < this.MAX_RETRY_ATTEMPTS) {
+          console.warn(`Primary backend failed, trying fallback URL...`);
+          this.requestAttempts.set(requestKey, attempts + 1);
+
+          try {
+            const response = await this.fetchWithAuth(`${fallbackUrl}${endpoint}`, options);
+            this.requestAttempts.delete(requestKey);
+            return await this.handleResponse<T>(response);
+          } catch (fallbackError) {
+            console.error('Fallback URL also failed:', fallbackError);
+          }
+        }
+
+        // Mark current provider as failed if failover is enabled
+        const config = backendConfig.getConfig();
+        if (config.enableFailover && config.provider !== 'auto') {
+          backendConfig.markProviderFailed(config.provider);
+
+          // Retry with alternative provider
+          if (attempts < this.MAX_RETRY_ATTEMPTS) {
+            console.warn(`Retrying with alternative backend provider...`);
+            this.requestAttempts.set(requestKey, attempts + 1);
+            return this.makeRequest<T>(endpoint, options);
+          }
+        }
+
         // In demo mode, fallback to mock data on network errors
         if (this.isDemoMode) {
           const mockResponse = this.getMockResponse<T>(endpoint, options.method || 'GET');
@@ -227,11 +272,34 @@ class ApiClient {
             return mockResponse;
           }
         }
+
+        this.requestAttempts.delete(requestKey);
         throw new NetworkError('Unable to connect to server. Please check your internet connection.');
       }
 
+      this.requestAttempts.delete(requestKey);
       throw new NetworkError('An unexpected error occurred. Please try again.');
     }
+  }
+
+  /**
+   * Fetch with authentication headers
+   */
+  private async fetchWithAuth(url: string, options: RequestInit): Promise<Response> {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
+    const defaultHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    return fetch(url, {
+      ...options,
+      headers: defaultHeaders,
+    });
   }
 
   // GET request
