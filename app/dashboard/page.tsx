@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,33 +10,31 @@ import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { WeatherDisplay } from "@/components/weather/weather-display"
+import { MonitoringDashboard } from "@/components/monitoring/monitoring-dashboard"
+import { NotificationSettings } from "@/components/settings/notification-settings"
 
-// Mock user alerts data
-const userAlerts = [
-  {
-    id: 1,
-    type: "flood",
-    severity: "high",
-    title: "Flash Flood Warning",
-    description: "Heavy rainfall causing flooding in your area",
-    location: "St. Catherine",
-    time: "2 hours ago",
-    status: "active",
-  },
-  {
-    id: 2,
-    type: "power",
-    severity: "low",
-    title: "Planned Power Outage",
-    description: "Scheduled maintenance in your area",
-    location: "St. Catherine",
-    time: "1 day ago",
-    status: "resolved",
-  },
-]
+interface Alert {
+  id: string | number;
+  type: string;
+  severity: string;
+  title: string;
+  description: string;
+  location: string;
+  time: string;
+  status: string;
+}
 
 function DashboardContent() {
   const { user, signOut } = useAuth()
+  const [userAlerts, setUserAlerts] = useState<Alert[]>([])
+  const [alertStats, setAlertStats] = useState({ active: 0, total: 0 })
+
+  // Fetch user alerts from monitoring dashboard
+  useEffect(() => {
+    // This will be populated by the MonitoringDashboard component
+    // For now, we'll use an empty array and let the monitoring dashboard handle it
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +104,7 @@ function DashboardContent() {
                   <Bell className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">1</div>
+                  <div className="text-2xl font-bold text-foreground">{alertStats.active}</div>
                   <div className="text-sm text-muted-foreground">Active Alerts</div>
                 </div>
               </div>
@@ -133,12 +132,35 @@ function DashboardContent() {
                   <Clock className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">2</div>
+                  <div className="text-2xl font-bold text-foreground">{alertStats.total}</div>
                   <div className="text-sm text-muted-foreground">Total Alerts</div>
                 </div>
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Weather Display */}
+        <div className="mb-8">
+          <WeatherDisplay initialCity="Kingston,JM" />
+        </div>
+
+        {/* Weather Monitoring */}
+        <div className="mb-8">
+          <MonitoringDashboard
+            userId={user?.id || 'demo-user'}
+            initialLocation="Kingston,JM"
+            onAlertsUpdate={(alerts) => {
+              setUserAlerts(alerts)
+              const active = alerts.filter(a => a.status === 'active').length
+              setAlertStats({ active, total: alerts.length })
+            }}
+          />
+        </div>
+
+        {/* Notification Settings */}
+        <div className="mb-8">
+          <NotificationSettings />
         </div>
 
         {/* Recent Alerts */}
@@ -150,11 +172,19 @@ function DashboardContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {userAlerts.map((alert) => (
-                <AlertCard key={alert.id} alert={alert} variant="full" />
-              ))}
-            </div>
+            {userAlerts.length > 0 ? (
+              <div className="space-y-4">
+                {userAlerts.map((alert) => (
+                  <AlertCard key={alert.id} alert={alert} variant="full" />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Bell className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-lg font-medium">No alerts yet</p>
+                <p className="text-sm">Start weather monitoring to receive alerts when thresholds are exceeded</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

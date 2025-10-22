@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Users, 
-  AlertTriangle, 
-  Bell, 
+import { WeatherThresholdSettings } from "@/components/admin/weather-threshold-settings"
+import {
+  Users,
+  AlertTriangle,
+  Bell,
   TrendingUp,
   Clock,
   CheckCircle,
@@ -263,6 +264,11 @@ export default function AdminDashboardPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Weather Alert Threshold Settings */}
+      <div className="mt-6">
+        <WeatherThresholdSettings />
       </div>
     </div>
   )

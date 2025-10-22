@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 // In-memory database for development
@@ -9,6 +10,53 @@ const adminUsers = new Map();
 // JWT secret - in production, use environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRY = '7d'; // 7 days
+
+// Initialize default admin users
+async function initializeAdminUsers() {
+  try {
+    // Create default admin user
+    const adminId = uuidv4();
+    const adminPasswordHash = await bcrypt.hash('admin123', 10);
+
+    const defaultAdmin = {
+      id: adminId,
+      email: 'admin@jamalert.com',
+      passwordHash: adminPasswordHash,
+      name: 'System Administrator',
+      role: 'ADMIN',
+      isActive: true,
+      createdAt: new Date(),
+      lastLogin: null,
+    };
+
+    adminUsers.set(adminId, defaultAdmin);
+    console.log('✅ Default admin user created:', defaultAdmin.email);
+
+    // Create development admin user
+    const devAdminId = uuidv4();
+    const devPasswordHash = await bcrypt.hash('demo123', 10);
+
+    const devAdmin = {
+      id: devAdminId,
+      email: 'demo@jamalert.com',
+      passwordHash: devPasswordHash,
+      name: 'Demo Administrator',
+      role: 'ADMIN',
+      isActive: true,
+      createdAt: new Date(),
+      lastLogin: null,
+    };
+
+    adminUsers.set(devAdminId, devAdmin);
+    console.log('✅ Demo admin user created:', devAdmin.email);
+
+  } catch (error) {
+    console.error('❌ Error initializing admin users:', error);
+  }
+}
+
+// Initialize admin users immediately
+initializeAdminUsers();
 
 /**
  * Admin login with email and password
