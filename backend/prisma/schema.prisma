@@ -18,6 +18,7 @@ model User {
   passwordHash          String   @map("password_hash") @db.VarChar(255)
   phone                 String?  @db.VarChar(20)
   parish                Parish
+  community             String?  @db.VarChar(255)
   address               String?  @db.Text
   smsAlerts             Boolean  @default(false) @map("sms_alerts")
   emailAlerts           Boolean  @default(true) @map("email_alerts")
@@ -33,6 +34,7 @@ model User {
   deactivations     UserDeactivation[]
 
   @@index([parish, isActive])
+  @@index([parish, community])
   @@map("users")
 }
 
@@ -43,6 +45,7 @@ model Alert {
   title           String        @db.VarChar(255)
   message         String        @db.Text
   parishes        Json          // Array of affected parishes
+  communities     Json?         // Optional array of specific communities within parishes
   createdBy       String?       @map("created_by") @db.VarChar(36)
   createdAt       DateTime      @default(now()) @map("created_at")
   expiresAt       DateTime?     @map("expires_at")

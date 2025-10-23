@@ -10,6 +10,7 @@ export interface UserProfile {
   email: string;
   phone?: string;
   parish: string;
+  community?: string;
   address?: string;
   emailAlerts: boolean;
   smsAlerts: boolean;

@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { User, Mail, Phone, MapPin, Save } from 'lucide-react';
 import { getUserProfile, updateUserProfile, UserProfile } from '@/lib/api/user-profile';
+import { PARISH_NAMES, Parish } from '@/lib/types';
+import { getCommunitiesByParish } from '@/lib/communities';
 
 
 
@@ -27,6 +29,7 @@ export function UserProfileForm() {
     email: '',
     phone: '',
     parish: '',
+    community: '',
     address: '',
     emailAlerts: true,
     smsAlerts: false,
@@ -43,11 +46,22 @@ export function UserProfileForm() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [communitySuggestions, setCommunitySuggestions] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     loadUserProfile();
   }, []);
+
+  // Update community suggestions when parish changes
+  useEffect(() => {
+    if (profile.parish) {
+      const suggestions = getCommunitiesByParish(profile.parish as Parish);
+      setCommunitySuggestions(suggestions);
+    } else {
+      setCommunitySuggestions([]);
+    }
+  }, [profile.parish]);
 
   const loadUserProfile = async () => {
     try {
@@ -199,13 +213,39 @@ export function UserProfileForm() {
                 <SelectValue placeholder="Select your parish" />
               </SelectTrigger>
               <SelectContent>
-                {parishes.map((parish) => (
-                  <SelectItem key={parish} value={parish}>
-                    {parish.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {Object.entries(PARISH_NAMES).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="community">
+              Community/Area (Optional)
+            </Label>
+            <Select
+              value={profile.community || ''}
+              onValueChange={(value) => updateProfile('community', value)}
+              disabled={!profile.parish}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={profile.parish ? "Select your community" : "Select parish first"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None / Other</SelectItem>
+                {communitySuggestions.map((community) => (
+                  <SelectItem key={community} value={community}>
+                    {community}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Select your specific community for more targeted flood alerts
+            </p>
           </div>
 
           <div className="space-y-2">
