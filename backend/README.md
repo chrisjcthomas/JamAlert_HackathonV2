@@ -53,12 +53,12 @@ Update `local.settings.json` with your configuration:
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "DATABASE_URL": "mysql://username:password@localhost:3306/jamalert",
-    "JWT_SECRET": "your-secure-jwt-secret-key-at-least-32-characters",
+    "JWT_SECRET": "<GENERATE_SECURE_JWT_SECRET_MIN_32_CHARS>",
     "SMTP_HOST": "smtp.gmail.com",
     "SMTP_PORT": "587",
-    "SMTP_USER": "your-email@gmail.com",
-    "SMTP_PASS": "your-app-password",
-    "WEATHER_API_KEY": "your-openweather-api-key"
+    "SMTP_USER": "<YOUR_EMAIL>@gmail.com",
+    "SMTP_PASS": "<YOUR_APP_PASSWORD>",
+    "WEATHER_API_KEY": "<YOUR_OPENWEATHER_API_KEY>"
   }
 }
 ```
@@ -173,32 +173,142 @@ npm run test:watch
 
 ## Deployment
 
-### Azure Deployment
+### Automated Deployment via GitHub Actions (Recommended)
+
+The backend is configured for automated CI/CD deployment using GitHub Actions. Every push to the `master` branch triggers an automatic deployment.
+
+**Workflow File**: `.github/workflows/master_jamalert-hackathon.yml`
+
+**What happens automatically**:
+1. Checks out the code
+2. Sets up Node.js 20.x
+3. Installs dependencies (`npm install`)
+4. Generates Prisma client (`npx prisma generate`)
+5. Builds TypeScript (`npm run build`)
+6. Creates deployment package with:
+   - `dist/` (compiled JavaScript)
+   - `node_modules/` (dependencies)
+   - `host.json` (Azure Functions config)
+   - `package.json`
+   - `prisma/` (database schema)
+7. Authenticates with Azure using OIDC
+8. Deploys to Azure Function App
+
+**To deploy**:
+```bash
+# Make your changes
+git add .
+git commit -m "Your commit message"
+git push origin master
+
+# Deployment happens automatically!
+# Monitor at: https://github.com/chrisjcthomas/JamAlert_HackathonV2/actions
+```
+
+**Deployment Status**:
+- ✅ Build time: ~2-3 minutes
+- ✅ Deploy time: ~2-3 minutes
+- ✅ Total time: ~5 minutes
+- 🌐 Live at: `https://jamalert-hackathon.azurewebsites.net`
+
+### Manual Azure Deployment (Alternative)
+
+If you need to deploy manually using Azure Functions Core Tools:
 
 1. **Create Azure Resources**:
    - Azure Function App
-   - Azure MySQL In-App Database
+   - Azure MySQL Flexible Server
    - Azure Notification Hub (optional)
 
 2. **Configure Application Settings**:
    Set the following in your Function App configuration:
    ```
-   DATABASE_URL=mysql://username:password@hostname:3306/database
-   JWT_SECRET=your-production-jwt-secret
-   SMTP_HOST=your-smtp-host
-   SMTP_USER=your-smtp-user
-   SMTP_PASS=your-smtp-password
-   WEATHER_API_KEY=your-weather-api-key
+   DATABASE_URL=mysql://<USERNAME>:<PASSWORD>@<HOST>:3306/<DATABASE>?sslaccept=strict
+   JWT_SECRET=<YOUR_PRODUCTION_JWT_SECRET>
+   SMTP_HOST=<YOUR_SMTP_HOST>
+   SMTP_USER=<YOUR_SMTP_USER>
+   SMTP_PASS=<YOUR_SMTP_PASSWORD>
+   WEATHER_API_KEY=<YOUR_WEATHER_API_KEY>
    ```
 
-3. **Deploy Functions**:
+3. **Build and Deploy**:
    ```bash
-   func azure functionapp publish <your-function-app-name>
+   # Build TypeScript
+   npm run build
+   
+   # Generate Prisma client
+   npx prisma generate
+   
+   # Deploy to Azure
+   func azure functionapp publish jamalert-hackathon
    ```
 
 4. **Run Database Migrations**:
    ```bash
    npx prisma migrate deploy
+   ```
+
+### First-Time Azure Setup
+
+For the initial deployment setup:
+
+1. **Create Azure Resources** (via Azure Portal or CLI):
+   ```bash
+   # Create resource group
+   az group create --name JamAlert --location canadacentral
+   
+   # Create MySQL Flexible Server
+   az mysql flexible-server create \
+     --name jamalerthackathon \
+     --resource-group JamAlert \
+     --location canadacentral \
+     --admin-user adminjamalert \
+     --admin-password "<REPLACE_WITH_SECURE_PASSWORD>" \
+     --sku-name Standard_B1ms \
+     --version 8.0.21
+   
+   # Create Function App (Consumption plan)
+   az functionapp create \
+     --name jamalert-hackathon \
+     --resource-group JamAlert \
+     --consumption-plan-location canadacentral \
+     --runtime node \
+     --runtime-version 20 \
+     --functions-version 4 \
+     --storage-account jamalertbcd2
+   ```
+
+2. **Configure GitHub Actions Deployment**:
+   - In Azure Portal, go to your Function App
+   - Navigate to "Deployment Center"
+   - Select "GitHub" as source
+   - Authorize and select repository: `chrisjcthomas/JamAlert_HackathonV2`
+   - Select branch: `master`
+   - Azure will create the workflow file automatically
+   - Workflow uses OIDC authentication (no secrets needed)
+
+3. **Configure Application Settings** in Azure Portal or via CLI:
+   ```bash
+   az functionapp config appsettings set \
+     --name jamalert-hackathon \
+     --resource-group JamAlert \
+     --settings \
+       DATABASE_URL="mysql://<USER>:<PASS>@<HOST>:3306/<DB>?sslaccept=strict" \
+       JWT_SECRET="<YOUR_JWT_SECRET_MIN_32_CHARS>" \
+       SMTP_HOST="smtp.gmail.com" \
+       SMTP_PORT="587" \
+       SMTP_USER="<YOUR_EMAIL>@gmail.com" \
+       SMTP_PASS="<YOUR_APP_PASSWORD>" \
+       WEATHER_API_KEY="<YOUR_OPENWEATHER_API_KEY>"
+   ```
+
+4. **Setup Database**:
+   ```bash
+   # Run migrations against production database
+   DATABASE_URL="your-production-db-url" npx prisma migrate deploy
+   
+   # (Optional) Seed initial data
+   DATABASE_URL="your-production-db-url" npx prisma db seed
    ```
 
 ### Environment Variables
