@@ -820,6 +820,7 @@ export class NotificationService {
     const customAlert: Alert = {
       id: `custom-${Date.now()}`,
       ...alertData,
+      communities: null,
       createdBy: null,
       createdAt: new Date(),
       expiresAt: null,

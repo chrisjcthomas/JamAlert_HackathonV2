@@ -74,6 +74,7 @@ describe('Alert Distribution Integration', () => {
         title: 'Test Alert',
         message: 'Test message',
         parishes: [Parish.KINGSTON],
+        communities: null,
         createdAt: new Date(),
         expiresAt: null,
         deliveryStatus: 'PENDING' as any,
