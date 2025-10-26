@@ -12,7 +12,7 @@ describe('incidentsReport Function', () => {
   let mockIncidentService: jest.Mocked<IncidentService>;
   let mockValidationService: jest.Mocked<ValidationService>;
   let mockContext: Partial<InvocationContext>;
-  let mockRequest: Partial<HttpRequest>;
+  let mockRequest: any;
 
   beforeEach(() => {
     // Reset mocks
