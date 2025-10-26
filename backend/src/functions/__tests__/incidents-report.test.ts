@@ -40,11 +40,20 @@ describe('incidentsReport Function', () => {
     };
 
     // Mock request
+    const mockHeaders = new Map<string, string>();
     mockRequest = {
       method: 'POST',
       headers: {
-        get: jest.fn()
-      },
+        get: jest.fn((key: string) => mockHeaders.get(key)),
+        has: jest.fn((key: string) => mockHeaders.has(key)),
+        set: jest.fn((key: string, value: string) => mockHeaders.set(key, value)),
+        append: jest.fn(),
+        delete: jest.fn(),
+        forEach: jest.fn(),
+        entries: jest.fn(),
+        keys: jest.fn(),
+        values: jest.fn()
+      } as any,
       json: jest.fn()
     };
   });
