@@ -42,7 +42,6 @@ describe('incidentsReport Function', () => {
     // Mock request
     const mockHeaders = new Map<string, string>();
     mockRequest = {
-      method: 'POST',
       headers: {
         get: jest.fn((key: string) => mockHeaders.get(key)),
         has: jest.fn((key: string) => mockHeaders.has(key)),
@@ -55,7 +54,8 @@ describe('incidentsReport Function', () => {
         values: jest.fn()
       } as any,
       json: jest.fn()
-    };
+    } as any;
+    mockRequest.method = 'POST';
   });
 
   describe('HTTP Method Validation', () => {
