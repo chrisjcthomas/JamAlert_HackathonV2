@@ -200,7 +200,6 @@ export class NotificationService {
   private determineNotificationTone(alert: Alert): NotificationTone {
     // Use urgent tone for high severity alerts or specific alert types
     if (alert.severity === 'HIGH' || 
-        alert.type === 'EMERGENCY' ||
         alert.title.toLowerCase().includes('urgent') ||
         alert.title.toLowerCase().includes('immediate')) {
       return 'urgent';
@@ -388,7 +387,7 @@ export class NotificationService {
     const chain: DeliveryMethod[] = [];
     
     // For high severity or urgent alerts, prioritize fastest delivery
-    if (alert.severity === 'HIGH' || alert.type === 'EMERGENCY') {
+    if (alert.severity === 'HIGH') {
       // Push first for immediate delivery
       chain.push(DeliveryMethod.PUSH);
       

@@ -9,3 +9,7 @@ tsconfig.json
 coverage
 node_modules/@azure/functions-core-tools
 .env
+express-app
+*.sql
+*.ps1
+*.md
