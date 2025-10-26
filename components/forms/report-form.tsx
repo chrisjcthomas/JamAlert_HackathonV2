@@ -24,6 +24,7 @@ import {
   type IncidentReportResponse 
 } from "@/lib/api/incidents"
 import { getErrorMessage, getValidationErrors } from "@/lib/api-client"
+import { PARISH_NAMES } from "@/lib/types"
 
 const incidentTypes = [
   { value: "flood", label: "Flash Flood", icon: "🌊" },
@@ -36,22 +37,8 @@ const severityLevels = [
   { value: "high", label: "High", description: "Serious incident, immediate attention needed", color: "destructive" },
 ]
 
-const parishes = [
-  "Kingston",
-  "St. Andrew",
-  "St. Thomas",
-  "Portland",
-  "St. Mary",
-  "St. Ann",
-  "Trelawny",
-  "St. James",
-  "Hanover",
-  "Westmoreland",
-  "St. Elizabeth",
-  "Manchester",
-  "Clarendon",
-  "St. Catherine",
-]
+// Get parish entries from the types
+const parishEntries = Object.entries(PARISH_NAMES)
 
 // Use the interface from the API module
 type ReportFormData = IncidentReportFormData
@@ -361,13 +348,13 @@ export function ReportForm() {
                 <SelectValue placeholder="Select parish" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
-                {parishes.map((parish) => (
+                {parishEntries.map(([value, label]) => (
                   <SelectItem
-                    key={parish}
-                    value={parish.toLowerCase()}
+                    key={value}
+                    value={value}
                     className="text-foreground hover:bg-muted"
                   >
-                    {parish}
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -16,8 +16,8 @@ import { formDataToApiRequest, PARISH_NAMES, Parish } from "@/lib/types"
 import type { RegistrationFormData } from "@/lib/types"
 import { useAuth } from "@/hooks/use-auth"
 
-// Get parish display names from the types
-const parishes = Object.values(PARISH_NAMES)
+// Get parish entries (key-value pairs) from the types
+const parishEntries = Object.entries(PARISH_NAMES)
 
 export function RegisterForm() {
     const [formData, setFormData] = useState<RegistrationFormData>(() => ({
@@ -347,13 +347,13 @@ export function RegisterForm() {
                         <SelectValue placeholder="Select your parish" />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border">
-                        {parishes.map((parish) => (
+                        {parishEntries.map(([value, label]) => (
                             <SelectItem
-                                key={parish}
-                                value={parish}
+                                key={value}
+                                value={value}
                                 className="text-foreground hover:bg-muted"
                             >
-                                {parish}
+                                {label}
                             </SelectItem>
                         ))}
                     </SelectContent>

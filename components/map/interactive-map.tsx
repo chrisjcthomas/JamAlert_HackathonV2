@@ -7,7 +7,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import { MapIncident, IncidentType, Severity } from '../../lib/api/incidents'
-import { Parish } from '../../lib/types'
+import { Parish, getDisplayNameFromParish } from '../../lib/types'
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -285,9 +285,9 @@ export default function InteractiveMap({ incidents, loading, height = "400px" }:
               ${incident.severity}
             </span>
           </div>
-          
+
           <div style="margin-bottom: 8px;">
-            <strong>Location:</strong> ${incident.parish.replace('_', ' ')}
+            <strong>Location:</strong> ${getDisplayNameFromParish(incident.parish)}
           </div>
           
           <div style="margin-bottom: 8px;">

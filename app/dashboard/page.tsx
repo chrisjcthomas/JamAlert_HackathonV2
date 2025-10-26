@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { WeatherDisplay } from "@/components/weather/weather-display"
 import { MonitoringDashboard } from "@/components/monitoring/monitoring-dashboard"
 import { NotificationSettings } from "@/components/settings/notification-settings"
+import { getDisplayNameFromParish, Parish } from "@/lib/types"
 
 interface Alert {
   id: string | number;
@@ -92,7 +93,7 @@ function DashboardContent() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {user?.name}!</h1>
-          <p className="text-muted-foreground">Stay informed about incidents and alerts in {user?.parish}.</p>
+          <p className="text-muted-foreground">Stay informed about incidents and alerts in {user?.parish ? getDisplayNameFromParish(user.parish as Parish) : 'your area'}.</p>
         </div>
 
         {/* Stats Cards */}
@@ -118,7 +119,7 @@ function DashboardContent() {
                   <MapPin className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">{user?.parish}</div>
+                  <div className="text-2xl font-bold text-foreground">{user?.parish ? getDisplayNameFromParish(user.parish as Parish) : 'N/A'}</div>
                   <div className="text-sm text-muted-foreground">Your Location</div>
                 </div>
               </div>
