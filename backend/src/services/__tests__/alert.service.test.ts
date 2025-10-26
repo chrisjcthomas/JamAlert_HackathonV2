@@ -59,6 +59,7 @@ describe('AlertService', () => {
       title: 'Flash Flood Warning',
       message: 'Immediate evacuation required for low-lying areas.',
       parishes: [Parish.KINGSTON, Parish.ST_ANDREW],
+      communities: null,
       createdBy: 'admin1',
       createdAt: new Date(),
       expiresAt: null,
