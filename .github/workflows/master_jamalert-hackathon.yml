@@ -37,10 +37,27 @@ jobs:
           npm run build --if-present
           popd
 
-      - name: Zip artifact for deployment
+      - name: Prepare deployment package
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          zip -r $GITHUB_WORKSPACE/release.zip dist node_modules host.json package.json .funcignore prisma -x '*.git*' 'coverage/*' 'tests/*' '*.test.*' '*/__tests__/*'
+          # Create deployment directory
+          mkdir -p $GITHUB_WORKSPACE/deploy
+          # Copy compiled output maintaining dist structure
+          cp -r dist $GITHUB_WORKSPACE/deploy/
+          # Copy necessary files
+          cp host.json $GITHUB_WORKSPACE/deploy/
+          cp package.json $GITHUB_WORKSPACE/deploy/
+          cp -r node_modules $GITHUB_WORKSPACE/deploy/
+          cp -r prisma $GITHUB_WORKSPACE/deploy/
+          [ -f .funcignore ] && cp .funcignore $GITHUB_WORKSPACE/deploy/ || true
+          # Update package.json main field to point to correct location
+          cd $GITHUB_WORKSPACE/deploy
+          node -e "const pkg=require('./package.json'); pkg.main='dist/src/index.js'; require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));"
+      
+      - name: Zip artifact for deployment
+        run: |
+          cd $GITHUB_WORKSPACE/deploy
+          zip -r $GITHUB_WORKSPACE/release.zip . -x '*.git*' 'coverage/*' 'tests/*' '*.test.*' '*/__tests__/*'
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
