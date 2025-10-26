@@ -40,7 +40,7 @@ jobs:
       - name: Zip artifact for deployment
         run: |
           cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          zip -r $GITHUB_WORKSPACE/release.zip . -x '*.git*' 'node_modules/*' 'coverage/*' 'tests/*' '*.test.*'
+          zip -r $GITHUB_WORKSPACE/release.zip dist node_modules host.json package.json .funcignore prisma -x '*.git*' 'coverage/*' 'tests/*' '*.test.*' '*/__tests__/*'
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
