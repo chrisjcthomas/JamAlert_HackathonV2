@@ -14,41 +14,69 @@ const JWT_EXPIRY = '7d'; // 7 days
 // Initialize default admin users
 async function initializeAdminUsers() {
   try {
-    // Create default admin user
-    const adminId = uuidv4();
-    const adminPasswordHash = await bcrypt.hash('admin123', 10);
+    const isProduction = process.env.NODE_ENV === 'production';
 
-    const defaultAdmin = {
-      id: adminId,
-      email: 'admin@jamalert.com',
-      passwordHash: adminPasswordHash,
-      name: 'System Administrator',
-      role: 'ADMIN',
-      isActive: true,
-      createdAt: new Date(),
-      lastLogin: null,
-    };
+    // --- Admin User ---
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@jamalert.com';
+    let adminPassword = process.env.ADMIN_PASSWORD;
 
-    adminUsers.set(adminId, defaultAdmin);
-    console.log('✅ Default admin user created:', defaultAdmin.email);
+    if (!adminPassword) {
+      if (isProduction) {
+        console.warn('⚠️ SECURITY WARNING: ADMIN_PASSWORD not set in production. Default admin user will NOT be created.');
+      } else {
+        adminPassword = 'admin123';
+        console.warn('⚠️ SECURITY WARNING: Using default admin password. Set ADMIN_PASSWORD in environment variables.');
+      }
+    }
 
-    // Create development admin user
-    const devAdminId = uuidv4();
-    const devPasswordHash = await bcrypt.hash('demo123', 10);
+    if (adminPassword) {
+      // Create default admin user
+      const adminId = uuidv4();
+      const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
 
-    const devAdmin = {
-      id: devAdminId,
-      email: 'demo@jamalert.com',
-      passwordHash: devPasswordHash,
-      name: 'Demo Administrator',
-      role: 'ADMIN',
-      isActive: true,
-      createdAt: new Date(),
-      lastLogin: null,
-    };
+      const defaultAdmin = {
+        id: adminId,
+        email: adminEmail,
+        passwordHash: adminPasswordHash,
+        name: 'System Administrator',
+        role: 'ADMIN',
+        isActive: true,
+        createdAt: new Date(),
+        lastLogin: null,
+      };
 
-    adminUsers.set(devAdminId, devAdmin);
-    console.log('✅ Demo admin user created:', devAdmin.email);
+      adminUsers.set(adminId, defaultAdmin);
+      console.log('✅ Default admin user created:', defaultAdmin.email);
+    }
+
+    // --- Demo/Dev Admin User ---
+    const demoEmail = process.env.DEMO_EMAIL || 'demo@jamalert.com';
+    let demoPassword = process.env.DEMO_PASSWORD;
+
+    // Only fallback to default demo password in non-production
+    if (!demoPassword && !isProduction) {
+      demoPassword = 'demo123';
+    }
+
+    if (demoPassword) {
+      // Create development admin user
+      const devAdminId = uuidv4();
+      const devPasswordHash = await bcrypt.hash(demoPassword, 10);
+
+      const devAdmin = {
+        id: devAdminId,
+        email: demoEmail,
+        passwordHash: devPasswordHash,
+        name: 'Demo Administrator',
+        role: 'ADMIN',
+        isActive: true,
+        createdAt: new Date(),
+        lastLogin: null,
+      };
+
+      adminUsers.set(devAdminId, devAdmin);
+      console.log('✅ Demo admin user created:', devAdmin.email);
+    }
 
   } catch (error) {
     console.error('❌ Error initializing admin users:', error);
