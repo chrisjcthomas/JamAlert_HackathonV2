@@ -23,6 +23,10 @@ The admin accounts are initialized automatically when the Express.js backend ser
 
 **Location:** `backend/express-app/auth-service.js`
 
+**Security Update:**
+- In **development** (`NODE_ENV` is not `production`), the default `admin123` and `demo123` passwords are used if no environment variables are provided. A security warning will be logged.
+- In **production** (`NODE_ENV=production`), the default admin user is **NOT** created unless `ADMIN_PASSWORD` is set in the environment variables. The demo user is only created if `DEMO_PASSWORD` is set.
+
 The admin users are created with bcrypt-hashed passwords and support JWT token-based authentication.
 
 ### Database Seeding (For Production)
