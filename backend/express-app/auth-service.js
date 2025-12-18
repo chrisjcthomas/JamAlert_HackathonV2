@@ -8,14 +8,21 @@ const users = new Map();
 const adminUsers = new Map();
 
 // JWT secret - in production, use environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const isProduction = process.env.NODE_ENV === 'production';
+
+let JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  if (isProduction) {
+    throw new Error('FATAL SECURITY ERROR: JWT_SECRET environment variable is not set in production!');
+  }
+  JWT_SECRET = 'your-secret-key-change-in-production';
+  console.warn('⚠️ SECURITY WARNING: Using default JWT secret. Set JWT_SECRET in environment variables.');
+}
 const JWT_EXPIRY = '7d'; // 7 days
 
 // Initialize default admin users
 async function initializeAdminUsers() {
   try {
-    const isProduction = process.env.NODE_ENV === 'production';
-
     // --- Admin User ---
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@jamalert.com';
     let adminPassword = process.env.ADMIN_PASSWORD;
@@ -24,8 +31,9 @@ async function initializeAdminUsers() {
       if (isProduction) {
         console.warn('⚠️ SECURITY WARNING: ADMIN_PASSWORD not set in production. Default admin user will NOT be created.');
       } else {
+        // In development, fall back to default password if not provided.
         adminPassword = 'admin123';
-        console.warn('⚠️ SECURITY WARNING: Using default admin password. Set ADMIN_PASSWORD in environment variables.');
+        console.warn('⚠️ SECURITY WARNING: Using default admin password "admin123". Set ADMIN_PASSWORD in environment variables.');
       }
     }
 
@@ -164,7 +172,7 @@ async function registerUser(userData) {
     const parishEnum = parish.toUpperCase().replace(/ /g, '_').replace(/\./g, '');
 
     // Create new user
-    const userId = require('uuid').v4();
+    const userId = uuidv4();
     const user = {
       id: userId,
       firstName,
