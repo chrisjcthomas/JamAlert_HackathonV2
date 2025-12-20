@@ -1,4 +1,4 @@
-## 2024-05-23 - Hardcoded Credentials in Auth Service
-**Vulnerability:** Hardcoded admin credentials ('admin123') were found in `backend/express-app/auth-service.js` which were initialized on every server start.
-**Learning:** Even "in-memory" or "development" databases can pose a critical risk if the code path to create default users exists in production builds. Code comments claiming "for development" are not security controls.
-**Prevention:** Use environment variables for all credentials. Implement logic to check `NODE_ENV` and strictly disable default credential creation in production environments.
+## 2024-05-23 - Missing Rate Limiting on Auth Endpoints
+**Vulnerability:** The express backend lacked rate limiting, specifically on authentication endpoints (`/api/auth/login`, `/api/auth/register`). This exposed the application to brute-force password attacks and potential Denial of Service (DoS).
+**Learning:** Even when security libraries like `helmet` are present, basic infrastructure protection like rate limiting can be overlooked. The memory indicated `express-rate-limit` was utilized, but it was missing from dependencies and code.
+**Prevention:** Implement `express-rate-limit` as a standard middleware for all Express applications. Use stricter limits for sensitive endpoints like login/register (e.g., 5 attempts/15min) compared to global limits. Always verify "known" security controls actually exist in the code.
