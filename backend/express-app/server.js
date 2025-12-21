@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
@@ -11,6 +12,34 @@ const weatherMonitor = require('./services/weather-monitor');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Trust proxy for rate limiting behind load balancers (e.g. Vercel, Railway)
+app.set('trust proxy', 1);
+
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: {
+    success: false,
+    error: 'Too many requests',
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+  }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Limit each IP to 10 login/register attempts per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many login attempts',
+    message: 'Too many login attempts from this IP, please try again after an hour'
+  }
+});
 
 // Enhanced CORS configuration for Vercel frontend
 const corsOptions = {
@@ -35,6 +64,12 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Apply global rate limiter
+app.use(limiter);
+
+// Apply stricter rate limiter to auth endpoints
+app.use('/api/auth/', authLimiter);
 
 // Request logging middleware
 app.use((req, res, next) => {
