@@ -8,6 +8,11 @@ const users = new Map();
 const adminUsers = new Map();
 
 // JWT secret - in production, use environment variable
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your-secret-key-change-in-production')) {
+  console.error('🚨 FATAL: JWT_SECRET is not set in production environment! Exiting.');
+  process.exit(1);
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRY = '7d'; // 7 days
 
