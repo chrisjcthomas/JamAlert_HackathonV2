@@ -5,12 +5,16 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const rateLimit = require('./middleware/rate-limiter');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Trust proxy for correct IP resolution behind load balancers (e.g., Vercel, Railway)
+app.set('trust proxy', 1);
 
 // Enhanced CORS configuration for Vercel frontend
 const corsOptions = {
@@ -106,8 +110,29 @@ app.get('/', (req, res) => {
 // AUTHENTICATION ENDPOINTS
 // ============================================================================
 
+// Rate limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: {
+    success: false,
+    error: 'Too many login attempts',
+    message: 'Too many login attempts, please try again after 15 minutes'
+  }
+});
+
+const incidentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // Limit each IP to 20 incident reports per hour
+  message: {
+    success: false,
+    error: 'Too many reports',
+    message: 'You have submitted too many reports recently. Please try again later.'
+  }
+});
+
 // Login endpoint - handles both user and admin login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   console.log('Login attempt:', req.body?.email);
   const { email, password } = req.body;
 
@@ -134,7 +159,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // User registration endpoint
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   console.log('User registration attempt:', req.body?.email);
   const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = req.body;
 
@@ -294,7 +319,7 @@ const incidentReports = new Map();
 let incidentIdCounter = 1;
 
 // Report incident endpoint
-app.post('/api/incidents/report', (req, res) => {
+app.post('/api/incidents/report', incidentLimiter, (req, res) => {
   try {
     const {
       incidentType,
