@@ -8,6 +8,7 @@ const compression = require('compression');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
+const authRateLimiter = require('./middleware/rate-limiter');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -107,7 +108,8 @@ app.get('/', (req, res) => {
 // ============================================================================
 
 // Login endpoint - handles both user and admin login
-app.post('/api/auth/login', async (req, res) => {
+// Applied rate limiting: 10 attempts per 15 minutes per IP
+app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   console.log('Login attempt:', req.body?.email);
   const { email, password } = req.body;
 
@@ -134,7 +136,8 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // User registration endpoint
-app.post('/api/auth/register', async (req, res) => {
+// Applied rate limiting: 10 attempts per 15 minutes per IP
+app.post('/api/auth/register', authRateLimiter, async (req, res) => {
   console.log('User registration attempt:', req.body?.email);
   const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = req.body;
 
