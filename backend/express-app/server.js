@@ -8,9 +8,13 @@ const compression = require('compression');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
+const rateLimiter = require('./middleware/rate-limiter');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Trust first proxy (important for Vercel/Railway)
+app.set('trust proxy', 1);
 
 // Enhanced CORS configuration for Vercel frontend
 const corsOptions = {
@@ -41,6 +45,15 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
+
+// Rate limiter for auth endpoints
+const authLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login/register requests per window
+  message: 'Too many login attempts from this IP, please try again after 15 minutes'
+});
+
+app.use('/api/auth/', authLimiter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
