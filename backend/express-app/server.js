@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const { authLimiter, apiLimiter } = require('./middleware/rate-limiter');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
@@ -35,6 +36,15 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+app.use('/api/', apiLimiter); // Apply general limits to all API routes
+app.use('/api/auth/', authLimiter); // Apply strict limits to auth routes (overrides general if matched, or runs in addition depending on mount order?)
+// Note: In Express, if multiple limiters match, they both run.
+// Since /api/auth/ matches /api/, both would run.
+// However, we want strict limits for auth.
+// Ideally we should mount apiLimiter to everything EXCEPT auth, or accept that auth requests consume both buckets.
+// Given the volume (10 vs 100), consuming both is fine. The 10 limit will trigger first.
 
 // Request logging middleware
 app.use((req, res, next) => {
