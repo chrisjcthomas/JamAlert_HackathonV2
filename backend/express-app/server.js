@@ -6,10 +6,16 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const authService = require('./auth-service');
+const { apiLimiter, authLimiter } = require('./middleware/rate-limiter');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
 
 const app = express();
+
+// Trust proxy is required when running behind a proxy (like Vercel, Heroku, Nginx)
+// to correctly identify the client IP address for rate limiting
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 8000;
 
 // Enhanced CORS configuration for Vercel frontend
@@ -35,6 +41,10 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Apply global rate limiting to all API routes
+// This helps protect against DoS attacks and abuse
+app.use('/api', apiLimiter);
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -107,7 +117,8 @@ app.get('/', (req, res) => {
 // ============================================================================
 
 // Login endpoint - handles both user and admin login
-app.post('/api/auth/login', async (req, res) => {
+// Apply stricter rate limiting to prevent brute-force attacks
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   console.log('Login attempt:', req.body?.email);
   const { email, password } = req.body;
 
@@ -134,7 +145,8 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // User registration endpoint
-app.post('/api/auth/register', async (req, res) => {
+// Apply stricter rate limiting to prevent spam registrations
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   console.log('User registration attempt:', req.body?.email);
   const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = req.body;
 
