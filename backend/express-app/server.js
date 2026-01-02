@@ -5,12 +5,17 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const { apiLimiter, authLimiter } = require('./middleware/rate-limiter');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Trust proxy is required when running behind a proxy (like Vercel, Heroku, Nginx)
+// to correctly identify client IP addresses for rate limiting
+app.set('trust proxy', 1);
 
 // Enhanced CORS configuration for Vercel frontend
 const corsOptions = {
@@ -35,6 +40,12 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Apply general rate limiter to all API routes
+app.use('/api', apiLimiter);
+
+// Apply stricter rate limiter to auth routes
+app.use('/api/auth', authLimiter);
 
 // Request logging middleware
 app.use((req, res, next) => {
