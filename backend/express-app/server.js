@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const { apiLimiter, authLimiter } = require('./middleware/rate-limiter');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
@@ -35,6 +36,10 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Apply rate limiting
+app.use('/api/', apiLimiter); // General limit for all API routes
+app.use('/api/auth/', authLimiter); // Stricter limit for auth routes
 
 // Request logging middleware
 app.use((req, res, next) => {
