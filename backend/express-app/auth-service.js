@@ -8,7 +8,21 @@ const users = new Map();
 const adminUsers = new Map();
 
 // JWT secret - in production, use environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const DEFAULT_SECRET = 'your-secret-key-change-in-production';
+let secret = process.env.JWT_SECRET;
+
+if (process.env.NODE_ENV === 'production') {
+  if (!secret || secret === DEFAULT_SECRET) {
+    console.error('🚨 FATAL SECURITY ERROR: JWT_SECRET is not set or is using the default value in production!');
+    console.error('   Please set a strong JWT_SECRET environment variable.');
+    process.exit(1);
+  }
+} else if (!secret) {
+  console.warn('⚠️ SECURITY WARNING: Using default JWT secret. Set JWT_SECRET in environment variables.');
+  secret = DEFAULT_SECRET;
+}
+
+const JWT_SECRET = secret;
 const JWT_EXPIRY = '7d'; // 7 days
 
 // Initialize default admin users
