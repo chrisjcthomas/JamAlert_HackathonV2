@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
@@ -35,6 +36,34 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Rate Limiting Configuration
+// General limiter for all routes
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: {
+    success: false,
+    error: 'Too many requests, please try again later.'
+  }
+});
+
+// Stricter limiter for authentication routes (login/register)
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // Limit each IP to 5 login/register requests per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many login attempts, please try again later.'
+  }
+});
+
+// Apply global rate limiting
+app.use(globalLimiter);
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -107,7 +136,7 @@ app.get('/', (req, res) => {
 // ============================================================================
 
 // Login endpoint - handles both user and admin login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   console.log('Login attempt:', req.body?.email);
   const { email, password } = req.body;
 
@@ -134,7 +163,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // User registration endpoint
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   console.log('User registration attempt:', req.body?.email);
   const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = req.body;
 
@@ -998,9 +1027,14 @@ app.use('*', (req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 JamAlert Express API running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Export app for testing
+module.exports = app;
+
+// Start server if run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 JamAlert Express API running on port ${PORT}`);
+    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
