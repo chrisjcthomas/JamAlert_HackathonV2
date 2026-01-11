@@ -1,4 +1,4 @@
-## 2024-05-23 - Hardcoded Credentials in Auth Service
-**Vulnerability:** Hardcoded admin credentials ('admin123') were found in `backend/express-app/auth-service.js` which were initialized on every server start.
-**Learning:** Even "in-memory" or "development" databases can pose a critical risk if the code path to create default users exists in production builds. Code comments claiming "for development" are not security controls.
-**Prevention:** Use environment variables for all credentials. Implement logic to check `NODE_ENV` and strictly disable default credential creation in production environments.
+## 2026-01-11 - Express Rate Limiting Implementation
+**Vulnerability:** Missing rate limiting on API endpoints allowed for potential Brute Force and Denial of Service (DoS) attacks.
+**Learning:** Modern hosting environments (like Vercel) often use proxies, requiring explicit `app.set('trust proxy', 1)` configuration for rate limiting to correctly identify client IP addresses instead of the load balancer's IP.
+**Prevention:** Always implement rate limiting middleware (like `express-rate-limit`) on all public API routes, with stricter limits on sensitive endpoints (authentication). Ensure middleware order is correct (Rate Limiter -> Body Parser) to prevent resource exhaustion from large payloads on blocked requests.
