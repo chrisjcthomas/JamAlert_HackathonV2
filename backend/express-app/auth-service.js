@@ -8,14 +8,29 @@ const users = new Map();
 const adminUsers = new Map();
 
 // JWT secret - in production, use environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const isProduction = process.env.NODE_ENV === 'production';
+const DEFAULT_SECRET = 'your-secret-key-change-in-production';
+const configuredSecret = process.env.JWT_SECRET;
+
+// STRICT SECURITY: Fail in production if JWT_SECRET is missing or default
+if (isProduction && (!configuredSecret || configuredSecret === DEFAULT_SECRET)) {
+  const errorMsg = '🚨 CRITICAL SECURITY ERROR: JWT_SECRET is missing or unsafe in production environment.';
+  console.error(errorMsg);
+  // Throwing error at top level will crash the application on startup, which is desired
+  throw new Error(errorMsg);
+}
+
+const JWT_SECRET = configuredSecret || DEFAULT_SECRET;
+
+if (!isProduction && !configuredSecret) {
+  console.warn('⚠️  SECURITY WARNING: Using default JWT_SECRET. This is unsafe for production.');
+}
+
 const JWT_EXPIRY = '7d'; // 7 days
 
 // Initialize default admin users
 async function initializeAdminUsers() {
   try {
-    const isProduction = process.env.NODE_ENV === 'production';
-
     // --- Admin User ---
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@jamalert.com';
     let adminPassword = process.env.ADMIN_PASSWORD;
