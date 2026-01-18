@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const { registerSchema } = require('./validation');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
@@ -136,29 +137,25 @@ app.post('/api/auth/login', async (req, res) => {
 // User registration endpoint
 app.post('/api/auth/register', async (req, res) => {
   console.log('User registration attempt:', req.body?.email);
-  const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = req.body;
 
-  // Basic validation
-  if (!email || !firstName || !lastName || !parish || !password) {
+  // Zod Validation
+  const validationResult = registerSchema.safeParse(req.body);
+
+  if (!validationResult.success) {
+    const errorMessages = validationResult.error.flatten().fieldErrors;
+    // Format error message nicely
+    const firstErrorKey = Object.keys(errorMessages)[0];
+    const firstErrorMsg = errorMessages[firstErrorKey]?.[0] || 'Invalid input';
+
     return res.status(400).json({
       success: false,
-      error: 'Missing required fields',
-      message: 'Email, first name, last name, parish, and password are required'
+      error: 'Validation failed',
+      message: `${firstErrorKey}: ${firstErrorMsg}`,
+      details: errorMessages
     });
   }
 
-  const result = await authService.registerUser({
-    email,
-    firstName,
-    lastName,
-    parish,
-    phone,
-    password,
-    address,
-    smsAlerts,
-    emailAlerts,
-    emergencyOnly
-  });
+  const result = await authService.registerUser(validationResult.data);
 
   if (result.success) {
     res.json(result);
