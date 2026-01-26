@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
+const createRateLimiter = require('./middleware/rate-limiter');
 const authService = require('./auth-service');
 const weatherRoutes = require('./routes/weather');
 const weatherMonitor = require('./services/weather-monitor');
@@ -106,8 +107,18 @@ app.get('/', (req, res) => {
 // AUTHENTICATION ENDPOINTS
 // ============================================================================
 
+// Rate limiter for auth endpoints (10 requests per 15 minutes)
+const authLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: {
+    success: false,
+    error: 'Too many login attempts, please try again later.'
+  }
+});
+
 // Login endpoint - handles both user and admin login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   console.log('Login attempt:', req.body?.email);
   const { email, password } = req.body;
 
@@ -134,7 +145,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // User registration endpoint
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   console.log('User registration attempt:', req.body?.email);
   const { email, firstName, lastName, parish, phone, password, smsAlerts, emailAlerts, emergencyOnly, address } = req.body;
 
