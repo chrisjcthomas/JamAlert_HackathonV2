@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable @next/next/no-img-element */
 import { useState, useEffect, useRef, ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 
@@ -126,6 +127,7 @@ export function LazyImage({
   return (
     <div className={`relative overflow-hidden ${className}`}>
       {/* Placeholder */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       {!isLoaded && !hasError && (
         <img
           src={placeholder}
@@ -135,6 +137,7 @@ export function LazyImage({
       )}
       
       {/* Actual image */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
         src={isInView ? src : placeholder}

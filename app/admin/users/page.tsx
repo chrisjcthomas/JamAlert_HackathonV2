@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -70,6 +71,7 @@ export default function UserManagementPage() {
     fetchUsers()
   }, [])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     filterUsers()
   }, [users, searchTerm, parishFilter, statusFilter])

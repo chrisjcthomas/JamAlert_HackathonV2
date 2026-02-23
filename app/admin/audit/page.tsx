@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,10 +91,6 @@ export default function AuditLogPage() {
   useEffect(() => {
     fetchAuditLogs()
   }, [])
-
-  useEffect(() => {
-    filterLogs()
-  }, [auditLogs, searchTerm, actionFilter, statusFilter, dateFilter])
 
   const fetchAuditLogs = async () => {
     try {
@@ -214,7 +210,7 @@ export default function AuditLogPage() {
     }
   }
 
-  const filterLogs = () => {
+  const filterLogs = useCallback(() => {
     let filtered = auditLogs
 
     // Search filter
@@ -260,7 +256,11 @@ export default function AuditLogPage() {
     }
 
     setFilteredLogs(filtered)
-  }
+  }, [auditLogs, searchTerm, actionFilter, statusFilter, dateFilter])
+
+  useEffect(() => {
+    filterLogs()
+  }, [filterLogs])
 
   const getActionCategory = (action: string): string => {
     const category = action.split('.')[0]
