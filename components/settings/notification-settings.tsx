@@ -138,9 +138,9 @@ export function NotificationSettings() {
                 <strong>Notifications are blocked.</strong> To enable them, please:
               </p>
               <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-red-800">
-                <li>Click the lock icon in your browser's address bar</li>
-                <li>Find "Notifications" in the permissions list</li>
-                <li>Change it from "Block" to "Allow"</li>
+                <li>Click the lock icon in your browser&apos;s address bar</li>
+                <li>Find &quot;Notifications&quot; in the permissions list</li>
+                <li>Change it from &quot;Block&quot; to &quot;Allow&quot;</li>
                 <li>Refresh the page and try again</li>
               </ol>
             </div>
@@ -212,7 +212,7 @@ export function NotificationSettings() {
             • Notifications are delivered in real-time when weather thresholds are exceeded
           </p>
           <p>
-            • You'll receive alerts even if the app is closed (if notifications are enabled)
+            • You&apos;ll receive alerts even if the app is closed (if notifications are enabled)
           </p>
           <p>
             • Click a notification to view details in the app

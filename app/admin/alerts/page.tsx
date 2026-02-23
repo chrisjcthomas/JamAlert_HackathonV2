@@ -372,7 +372,7 @@ export default function AlertManagementPage() {
                   onChange={(e) => setNewAlert(prev => ({ ...prev, expiresAt: e.target.value }))}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave empty for alerts that don't expire
+                  Leave empty for alerts that don&apos;t expire
                 </p>
               </div>
             </div>

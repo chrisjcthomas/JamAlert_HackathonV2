@@ -365,7 +365,7 @@ export function AccessibilitySettings() {
             <li>• Use keyboard navigation: Tab to move forward, Shift+Tab to move backward</li>
             <li>• Press Enter or Space to activate buttons and links</li>
             <li>• Use arrow keys to navigate within menus and lists</li>
-            <li>• Enable your browser's zoom feature for additional text scaling</li>
+            <li>• Enable your browser&apos;s zoom feature for additional text scaling</li>
             <li>• Consider using a screen reader like NVDA, JAWS, or VoiceOver for full accessibility</li>
           </ul>
         </div>

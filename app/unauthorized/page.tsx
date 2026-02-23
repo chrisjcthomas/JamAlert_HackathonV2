@@ -17,7 +17,7 @@ export default function UnauthorizedPage() {
             Access Denied
           </CardTitle>
           <CardDescription>
-            You don't have permission to access this area. 
+            You don&apos;t have permission to access this area. 
             Administrative privileges are required.
           </CardDescription>
         </CardHeader>
