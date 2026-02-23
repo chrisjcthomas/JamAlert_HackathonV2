@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,6 +47,7 @@ export function WeatherThresholdSettings() {
 
   const watchedValues = watch()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCurrentThresholds()
   }, [])

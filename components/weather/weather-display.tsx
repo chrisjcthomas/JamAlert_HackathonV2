@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ export function WeatherDisplay({ initialCity = 'Kingston,JM', onWeatherUpdate }:
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchWeather(initialCity);
   }, []);
@@ -153,6 +155,7 @@ export function WeatherDisplay({ initialCity = 'Kingston,JM', onWeatherUpdate }:
             <CardContent className="space-y-6">
               {/* Condition */}
               <div className="flex items-center gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={getWeatherIconUrl(weather.icon)}
                   alt={weather.condition}
