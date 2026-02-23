@@ -228,14 +228,14 @@ export function UserProfileForm() {
             </Label>
             <Select
               value={profile.community || ''}
-              onValueChange={(value) => updateProfile('community', value)}
+              onValueChange={(value) => updateProfile('community', value === 'other' ? '' : value)}
               disabled={!profile.parish}
             >
               <SelectTrigger>
                 <SelectValue placeholder={profile.parish ? "Select your community" : "Select parish first"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None / Other</SelectItem>
+                <SelectItem value="other">None / Other</SelectItem>
                 {communitySuggestions.map((community) => (
                   <SelectItem key={community} value={community}>
                     {community}

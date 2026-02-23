@@ -246,7 +246,7 @@ export function UnsubscribeDialog() {
                     <p className="text-xs text-red-700 mt-1">
                       By completely unsubscribing, you will not receive emergency alerts that could be 
                       critical for your safety during floods, severe weather, or other emergencies. 
-                      Consider the "Emergency Alerts Only" option instead.
+                      Consider the &quot;Emergency Alerts Only&quot; option instead.
                     </p>
                   </div>
                 </div>

@@ -189,7 +189,7 @@ export default function MyAlertsPage() {
               <CardHeader>
                 <CardTitle>Alert Feedback</CardTitle>
                 <CardDescription>
-                  Help us improve by providing feedback on the alerts you've received.
+                  Help us improve by providing feedback on the alerts you&apos;ve received.
                 </CardDescription>
               </CardHeader>
               <CardContent>
